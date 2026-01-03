@@ -56,36 +56,38 @@ class TeammateMatcher:
         print(f"Total participants to analyze: {len(all_participants)}")
         print(f"Custom search query: {search_query}")
 
+        # PRE-FILTER: Use basic keyword matching to reduce candidates
+        # Extract keywords from search query and filter participants
+        max_candidates = 50  # Limit to 50 best candidates before AI analysis
+
+        if len(all_participants) > max_candidates:
+            print(f"Pre-filtering from {len(all_participants)} to {max_candidates} candidates...")
+            filtered_participants = self._prefilter_by_query(all_participants, search_query, max_candidates)
+        else:
+            filtered_participants = all_participants
+
+        print(f"Analyzing {len(filtered_participants)} candidates with AI...")
+
         # Prepare data for Gemini
         current_user_profile = self._format_profile(current_user)
 
-        # Analyze in batches to avoid token limits
-        batch_size = 20
+        # Process in ONE batch if possible (faster), or two batches max
+        batch_size = 30  # Increased batch size for fewer API calls
         all_matches = []
 
-        total_batches = (len(all_participants) + batch_size - 1) // batch_size
-        for i in range(0, len(all_participants), batch_size):
+        total_batches = (len(filtered_participants) + batch_size - 1) // batch_size
+        for i in range(0, len(filtered_participants), batch_size):
             batch_num = (i // batch_size) + 1
             print(f"Processing batch {batch_num}/{total_batches}...")
-            batch = all_participants[i:i+batch_size]
+            batch = filtered_participants[i:i+batch_size]
             matches = self._analyze_batch_with_query(current_user_profile, batch, search_query)
             all_matches.extend(matches)
 
-        # Deduplicate matches by participant_id (keep highest score for each person)
-        seen_ids = {}
-        for match in all_matches:
-            participant_id = match.get('participant_id')
-            if participant_id:
-                if participant_id not in seen_ids or match['match_score'] > seen_ids[participant_id]['match_score']:
-                    seen_ids[participant_id] = match
+        # Sort by match score and return top N
+        all_matches.sort(key=lambda x: x['match_score'], reverse=True)
 
-        # Convert back to list and sort by match score
-        deduplicated_matches = list(seen_ids.values())
-        deduplicated_matches.sort(key=lambda x: x['match_score'], reverse=True)
-
-        print(f"Total matches after deduplication: {len(deduplicated_matches)}")
         print(f"Returning top {top_n} matches")
-        return deduplicated_matches[:top_n]
+        return all_matches[:top_n]
 
     def find_teammates(self, current_user_id: str, hackathon: str, top_n: int = 5) -> List[Dict]:
         """
@@ -196,6 +198,62 @@ class TeammateMatcher:
             profile += f"Interests: {', '.join(interests)}\n"
 
         return profile
+
+    def _prefilter_by_query(self, participants: List[Dict], search_query: str, max_candidates: int) -> List[Dict]:
+        """
+        Pre-filter participants using keyword matching to reduce the number of candidates
+        for AI analysis. This makes searches much faster.
+        """
+        query_lower = search_query.lower()
+
+        # Extract common tech keywords
+        common_keywords = ['python', 'javascript', 'java', 'react', 'node', 'typescript', 'go', 'rust',
+                          'machine learning', 'ml', 'ai', 'data science', 'backend', 'frontend',
+                          'fullstack', 'full stack', 'mobile', 'ios', 'android', 'flutter', 'web',
+                          'blockchain', 'solidity', 'ethereum', 'web3', 'docker', 'kubernetes',
+                          'aws', 'cloud', 'devops', 'database', 'sql', 'mongodb', 'postgres',
+                          'ui/ux', 'design', 'figma', 'css', 'tailwind', 'django', 'flask',
+                          'express', 'nestjs', 'graphql', 'rest', 'api']
+
+        # Score each participant based on keyword matches
+        scored_participants = []
+
+        for participant in participants:
+            score = 0
+
+            # Combine all searchable text
+            skills = participant.get('skills', [])
+            interests = participant.get('interests', [])
+            role = participant.get('role', '').lower()
+
+            searchable_text = ' '.join(skills + interests + [role]).lower()
+
+            # Count keyword matches in the query
+            for keyword in common_keywords:
+                if keyword in query_lower:
+                    # This keyword is in the search query
+                    if keyword in searchable_text:
+                        # Participant has this keyword
+                        score += 10
+
+            # Boost for having many skills/projects
+            stats = participant.get('stats', {})
+            score += len(skills) * 2
+            score += stats.get('projects', 0) * 3
+            score += stats.get('achievements', 0) * 2
+
+            # Check for direct text match in query
+            words = query_lower.split()
+            for word in words:
+                if len(word) > 3:  # Skip short words
+                    if word in searchable_text:
+                        score += 5
+
+            scored_participants.append((score, participant))
+
+        # Sort by score and return top candidates
+        scored_participants.sort(reverse=True, key=lambda x: x[0])
+        return [p for _, p in scored_participants[:max_candidates]]
 
     def _analyze_batch_with_query(self, current_user_profile: str, candidates: List[Dict], search_query: str) -> List[Dict]:
         """Use Gemini to analyze a batch of candidates with a custom search query"""
