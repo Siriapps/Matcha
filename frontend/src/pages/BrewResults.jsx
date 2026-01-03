@@ -4,10 +4,11 @@ import Layout from '../components/Layout'
 
 function BrewResults() {
   const navigate = useNavigate()
-  const [filters, setFilters] = useState([])
   const [brewResults, setBrewResults] = useState(null)
   const [currentUser, setCurrentUser] = useState(null)
   const [matches, setMatches] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
 
   // Load results from sessionStorage on mount
   useEffect(() => {
@@ -30,8 +31,42 @@ function BrewResults() {
     }
   }, [navigate])
 
-  const removeFilter = (filter) => {
-    setFilters(filters.filter(f => f !== filter))
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      alert('Please enter a search query')
+      return
+    }
+
+    setIsSearching(true)
+
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api'
+
+      const response = await fetch(`${API_BASE_URL}/search-teammates`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          hackathon: brewResults.hackathon_name,
+          search_query: searchQuery,
+          current_user_id: currentUser?.participant_id
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to search teammates')
+      }
+
+      const result = await response.json()
+      setMatches(result.matches || [])
+    } catch (error) {
+      console.error('Search error:', error)
+      alert(`Search failed: ${error.message}`)
+    } finally {
+      setIsSearching(false)
+    }
   }
 
   const handleChat = (brewerId, brewerName) => {
@@ -55,37 +90,43 @@ function BrewResults() {
                   </p>
                 )}
               </div>
-              {/* Main Actions */}
-              <div className="flex gap-3">
-                <button className="flex items-center gap-2 px-4 py-2.5 bg-[#1e3626] text-white rounded-lg hover:bg-[#284a33] transition-colors font-medium text-sm">
-                  <span className="material-symbols-outlined text-[20px]">tune</span>
-                  Filters
-                </button>
-                <button className="flex items-center gap-2 px-4 py-2.5 bg-primary text-black rounded-lg hover:bg-[#0fd650] transition-colors font-bold text-sm shadow-[0_0_15px_rgba(19,236,91,0.3)]">
-                  <span className="material-symbols-outlined text-[20px]">autorenew</span>
-                  Refresh Brew
-                </button>
-              </div>
-            </div>
-            {/* Chips / Filters */}
-            <div className="flex flex-wrap gap-3 pb-4 border-b border-[#28392e]">
-              {filters.map((filter, idx) => (
+              {/* AI Search Bar */}
+              <div className="flex flex-col sm:flex-row gap-3 w-full">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    placeholder="E.g., I'm looking for someone strong with Python and has built multiple projects..."
+                    className="w-full px-4 py-3 bg-[#1e3626] border border-[#28392e] rounded-lg text-white placeholder-[#9db9a6] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                    disabled={isSearching}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[#9db9a6] text-[20px]">
+                    psychology
+                  </span>
+                </div>
                 <button
-                  key={idx}
-                  onClick={() => removeFilter(filter)}
-                  className="group flex h-9 items-center gap-2 rounded-full border border-[#28392e] bg-[#162a1d] pl-4 pr-3 text-sm font-medium text-white transition hover:border-primary/50 hover:bg-[#1e3626]"
+                  onClick={handleSearch}
+                  disabled={isSearching}
+                  className="flex items-center gap-2 px-6 py-3 bg-primary text-black rounded-lg hover:bg-[#0fd650] transition-colors font-bold text-sm shadow-[0_0_15px_rgba(19,236,91,0.3)] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
-                  {filter}
-                  <span className="material-symbols-outlined text-gray-400 group-hover:text-primary text-[18px]">close</span>
-                </button>
-              ))}
-              <div className="ml-auto flex items-center gap-2">
-                <span className="text-sm text-[#9db9a6]">Sort by:</span>
-                <button className="flex items-center gap-1 text-sm font-bold text-white hover:text-primary">
-                  Match % <span className="material-symbols-outlined text-[18px]">arrow_drop_down</span>
+                  {isSearching ? (
+                    <>
+                      <span className="material-symbols-outlined text-[20px] animate-spin">refresh</span>
+                      Searching...
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-[20px]">search</span>
+                      AI Search
+                    </>
+                  )}
                 </button>
               </div>
             </div>
+            {/* Divider */}
+            <div className="border-b border-[#28392e]"></div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

@@ -389,5 +389,68 @@ def find_teammates():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/search-teammates', methods=['POST'])
+def search_teammates():
+    """Search for teammates using custom AI query"""
+    try:
+        if not GEMINI_API_KEY:
+            return jsonify({'error': 'Gemini API key not configured'}), 500
+
+        data = request.get_json()
+        hackathon = data.get('hackathon', '').strip()
+        search_query = data.get('search_query', '').strip()
+        current_user_id = data.get('current_user_id', '').strip()
+
+        if not hackathon:
+            return jsonify({'error': 'Hackathon name is required'}), 400
+
+        if not search_query:
+            return jsonify({'error': 'Search query is required'}), 400
+
+        # Get current user if provided
+        client = MongoClient(MONGODB_URI)
+        db = client[DATABASE_NAME]
+        collection = db[COLLECTION_NAME]
+
+        current_user = None
+        if current_user_id:
+            current_user = collection.find_one({
+                'participant_id': current_user_id,
+                'hackathon': hackathon
+            })
+
+        # If no current user provided or found, get the first participant
+        if not current_user:
+            current_user = collection.find_one({'hackathon': hackathon})
+
+        if not current_user:
+            client.close()
+            return jsonify({'error': 'No participants found for this hackathon'}), 404
+
+        client.close()
+
+        # Use Gemini to find matches with custom search query
+        matcher = TeammateMatcher(GEMINI_API_KEY, MONGODB_URI)
+
+        try:
+            matches = matcher.find_teammates_with_query(
+                current_user_id=current_user.get('participant_id'),
+                hackathon=hackathon,
+                search_query=search_query,
+                top_n=10
+            )
+
+            return jsonify({
+                'success': True,
+                'matches': matches
+            })
+
+        finally:
+            matcher.close()
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
