@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -14,6 +15,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for React frontend
 
 # MongoDB configuration
 MONGODB_URI = "mongodb+srv://sainikhil1611_db_user:LrCOwJCDgBRI4mCh@hack-for-hacks.hg2vjaf.mongodb.net/?appName=Hack-for-Hacks"
@@ -222,11 +224,19 @@ class DevpostScraperService:
 
 @app.route('/')
 def index():
-    """Render the main page"""
-    return render_template('index.html')
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'ok',
+        'message': 'Matcha Backend API is running',
+        'endpoints': {
+            'scrape': '/api/scrape',
+            'find_teammates': '/api/find-teammates',
+            'stats': '/api/stats'
+        }
+    })
 
 
-@app.route('/scrape', methods=['POST'])
+@app.route('/api/scrape', methods=['POST'])
 def scrape_and_store():
     """Scrape hackathon participants and store in MongoDB"""
     try:
@@ -282,7 +292,7 @@ def scrape_and_store():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/stats', methods=['GET'])
+@app.route('/api/stats', methods=['GET'])
 def get_stats():
     """Get statistics from MongoDB"""
     try:
@@ -310,7 +320,7 @@ def get_stats():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/find-teammates', methods=['POST'])
+@app.route('/api/find-teammates', methods=['POST'])
 def find_teammates():
     """Find compatible teammates using Gemini AI"""
     try:
