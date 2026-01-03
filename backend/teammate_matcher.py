@@ -22,7 +22,7 @@ class TeammateMatcher:
         self.db = self.client['devpost_data']
         self.collection = self.db['participants']
 
-    def find_teammates_with_query(self, current_user_id: str, hackathon: str, search_query: str, top_n: int = 5) -> List[Dict]:
+    def find_teammates_with_query(self, current_user_id: str, hackathon: str, search_query: str, top_n: int = 5, custom_user_profile: Dict = None) -> List[Dict]:
         """
         Find teammates based on a custom search query using Gemini AI.
 
@@ -31,18 +31,22 @@ class TeammateMatcher:
             hackathon: Hackathon name to search within
             search_query: Custom search criteria (e.g., "looking for Python expert with multiple projects")
             top_n: Number of top matches to return
+            custom_user_profile: Optional custom user profile from Devpost scraper
 
         Returns:
             List of matched participants with match scores and reasons
         """
-        # Get current user data
-        current_user = self.collection.find_one({
-            'participant_id': current_user_id,
-            'hackathon': hackathon
-        })
+        # Get current user data - use custom profile if provided
+        if custom_user_profile:
+            current_user = custom_user_profile
+        else:
+            current_user = self.collection.find_one({
+                'participant_id': current_user_id,
+                'hackathon': hackathon
+            })
 
-        if not current_user:
-            raise ValueError(f"User with ID {current_user_id} not found in {hackathon}")
+            if not current_user:
+                raise ValueError(f"User with ID {current_user_id} not found in {hackathon}")
 
         # Get all other participants from the same hackathon
         all_participants = list(self.collection.find({
@@ -89,7 +93,7 @@ class TeammateMatcher:
         print(f"Returning top {top_n} matches")
         return all_matches[:top_n]
 
-    def find_teammates(self, current_user_id: str, hackathon: str, top_n: int = 5) -> List[Dict]:
+    def find_teammates(self, current_user_id: str, hackathon: str, top_n: int = 5, custom_user_profile: Dict = None) -> List[Dict]:
         """
         Find the best teammates for a user using Gemini AI.
 
@@ -97,18 +101,22 @@ class TeammateMatcher:
             current_user_id: Participant ID of the current user
             hackathon: Hackathon name to search within
             top_n: Number of top matches to return
+            custom_user_profile: Optional custom user profile from Devpost scraper
 
         Returns:
             List of matched participants with match scores and reasons
         """
-        # Get current user data
-        current_user = self.collection.find_one({
-            'participant_id': current_user_id,
-            'hackathon': hackathon
-        })
+        # Get current user data - use custom profile if provided
+        if custom_user_profile:
+            current_user = custom_user_profile
+        else:
+            current_user = self.collection.find_one({
+                'participant_id': current_user_id,
+                'hackathon': hackathon
+            })
 
-        if not current_user:
-            raise ValueError(f"User with ID {current_user_id} not found in {hackathon}")
+            if not current_user:
+                raise ValueError(f"User with ID {current_user_id} not found in {hackathon}")
 
         # Get all other participants from the same hackathon
         all_participants = list(self.collection.find({

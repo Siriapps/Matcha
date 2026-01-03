@@ -37,14 +37,14 @@ export const scrapeHackathon = async (hackathonUrl) => {
 /**
  * Find AI-matched teammates for a hackathon
  * @param {string} hackathon - Hackathon name (e.g., "hackutd-2025")
- * @param {string} userId - Optional: Specific participant ID to match for
+ * @param {Object} userProfile - Optional: User's Devpost profile from login
  * @returns {Promise<Object>} { success, current_user, matches }
  */
-export const findTeammates = async (hackathon, userId = null) => {
+export const findTeammates = async (hackathon, userProfile = null) => {
   try {
     const body = { hackathon }
-    if (userId) {
-      body.user_id = userId
+    if (userProfile) {
+      body.user_profile = userProfile
     }
 
     const response = await fetch(`${API_BASE_URL}/find-teammates`, {
@@ -93,9 +93,10 @@ export const getStats = async () => {
  * @param {string} hackathonUrl - Full Devpost URL
  * @param {function} onProgress - Callback for progress updates (0-100)
  * @param {function} onStepChange - Callback for step description updates
+ * @param {Object} userProfile - Optional: User's Devpost profile from login
  * @returns {Promise<Object>} Match results with current_user and matches
  */
-export const brewTeammates = async (hackathonUrl, onProgress, onStepChange) => {
+export const brewTeammates = async (hackathonUrl, onProgress, onStepChange, userProfile = null) => {
   try {
     // Step 1: Scrape hackathon (0-50%)
     if (onStepChange) onStepChange('Scraping participant data from Devpost...')
@@ -109,7 +110,7 @@ export const brewTeammates = async (hackathonUrl, onProgress, onStepChange) => {
     if (onStepChange) onStepChange(`Analyzing compatibility for ${scrapeResult.participants_count} participants...`)
     if (onProgress) onProgress(60)
 
-    const matchResult = await findTeammates(scrapeResult.hackathon)
+    const matchResult = await findTeammates(scrapeResult.hackathon, userProfile)
 
     if (onProgress) onProgress(90)
     if (onStepChange) onStepChange('Finalizing your perfect matches...')

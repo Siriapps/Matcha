@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import { useAuth } from '../context/AuthContext'
 
 function BrewResults() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [brewResults, setBrewResults] = useState(null)
   const [currentUser, setCurrentUser] = useState(null)
   const [matches, setMatches] = useState([])
@@ -42,6 +44,9 @@ function BrewResults() {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api'
 
+      // Get user's Devpost profile if available
+      const userProfile = user?.devpostProfile || null
+
       const response = await fetch(`${API_BASE_URL}/search-teammates`, {
         method: 'POST',
         headers: {
@@ -50,7 +55,7 @@ function BrewResults() {
         body: JSON.stringify({
           hackathon: brewResults.hackathon_name,
           search_query: searchQuery,
-          current_user_id: currentUser?.participant_id
+          user_profile: userProfile
         }),
       })
 

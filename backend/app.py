@@ -508,23 +508,31 @@ def find_teammates():
 
         data = request.get_json()
         hackathon = data.get('hackathon', '').strip()
+        user_profile_data = data.get('user_profile')  # Devpost profile from logged-in user
 
         if not hackathon:
             return jsonify({'error': 'Hackathon name is required'}), 400
 
-        # Get the first participant (the user who scraped)
         client = MongoClient(MONGODB_URI)
         db = client[DATABASE_NAME]
-        collection = db[COLLECTION_NAME]
 
-        # Get the first participant from this hackathon (sorted by when they were inserted)
-        current_user = collection.find_one({'hackathon': hackathon})
+        # If user provided their Devpost profile, use that
+        # Otherwise fall back to first participant in hackathon
+        if user_profile_data:
+            # Use the logged-in user's profile
+            current_user = user_profile_data
+            current_user_id = f"logged_user_{current_user.get('username', 'unknown')}"
+        else:
+            # Fallback: Get the first participant from this hackathon
+            collection = db[COLLECTION_NAME]
+            current_user = collection.find_one({'hackathon': hackathon})
 
-        if not current_user:
-            client.close()
-            return jsonify({'error': 'No participants found for this hackathon'}), 404
+            if not current_user:
+                client.close()
+                return jsonify({'error': 'No participants found for this hackathon'}), 404
 
-        current_user_id = current_user.get('participant_id')
+            current_user_id = current_user.get('participant_id')
+
         client.close()
 
         # Use Gemini to find matches
@@ -534,14 +542,15 @@ def find_teammates():
             matches = matcher.find_teammates(
                 current_user_id=current_user_id,
                 hackathon=hackathon,
-                top_n=10
+                top_n=10,
+                custom_user_profile=user_profile_data  # Pass custom profile if available
             )
 
             return jsonify({
                 'success': True,
                 'current_user': {
                     'name': current_user.get('name'),
-                    'role': current_user.get('role'),
+                    'role': current_user.get('role') or current_user.get('tagline', ''),
                     'skills': current_user.get('skills', []),
                     'interests': current_user.get('interests', [])
                 },
@@ -565,7 +574,7 @@ def search_teammates():
         data = request.get_json()
         hackathon = data.get('hackathon', '').strip()
         search_query = data.get('search_query', '').strip()
-        current_user_id = data.get('current_user_id', '').strip()
+        user_profile_data = data.get('user_profile')  # Devpost profile from logged-in user
 
         if not hackathon:
             return jsonify({'error': 'Hackathon name is required'}), 400
@@ -573,25 +582,23 @@ def search_teammates():
         if not search_query:
             return jsonify({'error': 'Search query is required'}), 400
 
-        # Get current user if provided
         client = MongoClient(MONGODB_URI)
         db = client[DATABASE_NAME]
         collection = db[COLLECTION_NAME]
 
-        current_user = None
-        if current_user_id:
-            current_user = collection.find_one({
-                'participant_id': current_user_id,
-                'hackathon': hackathon
-            })
-
-        # If no current user provided or found, get the first participant
-        if not current_user:
+        # If user provided their Devpost profile, use that
+        # Otherwise fall back to first participant in hackathon
+        if user_profile_data:
+            current_user = user_profile_data
+            current_user_id = f"logged_user_{current_user.get('username', 'unknown')}"
+        else:
             current_user = collection.find_one({'hackathon': hackathon})
 
-        if not current_user:
-            client.close()
-            return jsonify({'error': 'No participants found for this hackathon'}), 404
+            if not current_user:
+                client.close()
+                return jsonify({'error': 'No participants found for this hackathon'}), 404
+
+            current_user_id = current_user.get('participant_id')
 
         client.close()
 
@@ -600,10 +607,11 @@ def search_teammates():
 
         try:
             matches = matcher.find_teammates_with_query(
-                current_user_id=current_user.get('participant_id'),
+                current_user_id=current_user_id,
                 hackathon=hackathon,
                 search_query=search_query,
-                top_n=10
+                top_n=10,
+                custom_user_profile=user_profile_data
             )
 
             return jsonify({

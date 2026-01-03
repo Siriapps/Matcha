@@ -2,10 +2,12 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { brewTeammates } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 function Brewing() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { user } = useAuth()
   const [progress, setProgress] = useState(0)
   const [currentStep, setCurrentStep] = useState('Initializing...')
   const [error, setError] = useState(null)
@@ -40,10 +42,14 @@ function Brewing() {
         setProgress(10)
         setCurrentStep('Connecting to backend...')
 
+        // Get user's Devpost profile if available
+        const userProfile = user?.devpostProfile || null
+
         const result = await brewTeammates(
           hackathonUrl,
           (progressValue) => setProgress(progressValue),
-          (stepText) => setCurrentStep(stepText)
+          (stepText) => setCurrentStep(stepText),
+          userProfile
         )
 
         // Save results to sessionStorage for BrewResults page
