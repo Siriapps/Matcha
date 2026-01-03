@@ -3,6 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react'
 import { useAuth } from '../context/AuthContext'
 import { useEffect, useState } from 'react'
 import processVideo from '../assets/images/process.mp4'
+import landingImage from '../assets/images/landing.png'
 
 function Landing() {
   const { loginWithRedirect } = useAuth0()
@@ -78,15 +79,16 @@ function Landing() {
             <Link
               to="/signup"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-forest px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-forest-mid"
+              style={{ marginTop: '10px', marginBottom: '10px' }}
             >
               Get Started <span className="material-icons-outlined text-base">arrow_downward</span>
             </Link>
-            <Link
-              to="/login"
+            <a
+              href="#about"
               className="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-50"
             >
               Learn more
-            </Link>
+            </a>
           </div>
         </div>
 
@@ -99,10 +101,12 @@ function Landing() {
 
             {/* center card */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="relative flex h-56 w-56 items-center justify-center rounded-3xl border border-gray-200 bg-white shadow-2xl rotate-[-10deg]">
-                <span className="material-icons-outlined text-forest" style={{ fontSize: '84px' }}>
-                  local_cafe
-                </span>
+              <div className="relative flex items-center justify-center rounded-3xl border border-gray-200 bg-white shadow-2xl rotate-[-10deg] overflow-hidden" style={{ width: '267px', height: '267px' }}>
+                <img 
+                  src={landingImage} 
+                  alt="Matcha" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
 
@@ -250,7 +254,7 @@ function Landing() {
       </section>
 
       {/* About Section with Video */}
-      <section className="bg-gradient-to-r from-forest-dark to-forest lg:py-24 my-8 lg:my-12" style={{ paddingTop: '31px', paddingBottom: '31px' }}>
+      <section id="about" className="bg-gradient-to-r from-forest-dark to-forest lg:py-24 my-8 lg:my-12" style={{ paddingTop: '31px', paddingBottom: '31px' }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">About Matcha</h2>

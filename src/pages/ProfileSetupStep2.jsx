@@ -83,15 +83,20 @@ function ProfileSetupStep2() {
       <div className="w-full max-w-5xl bg-card-light dark:bg-card-dark rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
         <div className="grid md:grid-cols-2">
           {/* Left Section - Info */}
-          <div className="bg-gray-50 dark:bg-neutral-900 p-12 flex flex-col justify-center items-center text-center">
+          <div 
+            className="p-12 flex flex-col justify-center items-center text-center"
+            style={{ 
+              background: 'linear-gradient(90deg, rgba(59, 84, 67, 1) 0%, rgba(56, 138, 85, 1) 100%)',
+              color: 'rgba(255, 255, 255, 1)'
+            }}
+          >
             <div className="w-24 h-24 bg-gray-200 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-6">
               <span className="material-icons-outlined text-5xl text-gray-400 dark:text-neutral-600">upload_file</span>
             </div>
-            <h2 className="text-2xl font-bold mb-4 text-neutral-900 dark:text-white">Showcase Your Expertise</h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            <h2 className="text-2xl font-bold mb-4 text-white">Showcase Your Expertise</h2>
+            <p className="text-gray-200">
               Adding your skills and resume helps us brew the perfect team match for you.
             </p>
-            <div className="mt-8 w-16 h-16 bg-gray-200 dark:bg-neutral-800 rounded-full opacity-50"></div>
           </div>
 
           {/* Right Section - Form */}
