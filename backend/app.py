@@ -35,172 +35,6 @@ DEVPOST_COOKIES = [
 ]
 
 
-class DevpostProfileScraper:
-    """Service to scrape individual Devpost user profiles"""
-
-    def __init__(self):
-        self.options = Options()
-        self.options.add_argument('--headless')
-        self.options.add_argument('--no-sandbox')
-        self.options.add_argument('--disable-dev-shm-usage')
-        self.options.add_argument('user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36')
-
-    def scrape_profile(self, profile_url: str) -> Dict:
-        """
-        Scrape a Devpost user profile page.
-        Returns: Dict with user data or None if error
-        """
-        driver = None
-        try:
-            driver = webdriver.Chrome(options=self.options)
-            driver.get(profile_url)
-            time.sleep(2)
-
-            soup = BeautifulSoup(driver.page_source, 'html.parser')
-
-            profile_data = {}
-
-            # Extract username from URL
-            username = profile_url.rstrip('/').split('/')[-1]
-            profile_data['username'] = username
-            profile_data['profile_url'] = profile_url
-
-            # Name
-            name_elem = soup.find('h1', id='user-name')
-            if name_elem:
-                profile_data['name'] = name_elem.get_text().strip()
-
-            # Tagline/Bio
-            tagline_elem = soup.find('p', id='user-tagline')
-            if tagline_elem:
-                profile_data['tagline'] = tagline_elem.get_text().strip()
-
-            # Location
-            location_elem = soup.find('div', id='user-location')
-            if location_elem:
-                profile_data['location'] = location_elem.get_text().strip()
-
-            # Profile image
-            img_elem = soup.find('img', id='user-avatar')
-            if img_elem and img_elem.get('src'):
-                profile_data['photo_url'] = img_elem['src']
-
-            # Skills
-            skills_container = soup.find('div', id='portfolio-user-skills')
-            if skills_container:
-                skill_tags = skills_container.find_all('span', class_='cp-tag')
-                skills = [tag.get_text().strip() for tag in skill_tags]
-                profile_data['skills'] = skills
-
-            # Stats (hackathons, projects, achievements)
-            stats = {}
-
-            # Number of hackathons
-            hackathons_elem = soup.find('span', id='hackathons-count')
-            if hackathons_elem:
-                try:
-                    stats['hackathons'] = int(hackathons_elem.get_text().strip())
-                except:
-                    stats['hackathons'] = 0
-
-            # Number of projects
-            projects_elem = soup.find('span', id='submissions-count')
-            if projects_elem:
-                try:
-                    stats['projects'] = int(projects_elem.get_text().strip())
-                except:
-                    stats['projects'] = 0
-
-            # Achievements/Wins
-            achievements_elem = soup.find('span', id='wins-count')
-            if achievements_elem:
-                try:
-                    stats['achievements'] = int(achievements_elem.get_text().strip())
-                except:
-                    stats['achievements'] = 0
-
-            profile_data['stats'] = stats
-
-            # Projects
-            projects = []
-            project_cards = soup.find_all('div', class_='software-entry')
-            for card in project_cards[:10]:  # Limit to 10 most recent projects
-                project = {}
-
-                # Project title
-                title_elem = card.find('h5')
-                if title_elem:
-                    project['title'] = title_elem.get_text().strip()
-
-                # Project description
-                desc_elem = card.find('p', class_='software-tagline')
-                if desc_elem:
-                    project['description'] = desc_elem.get_text().strip()
-
-                # Project link
-                link_elem = card.find('a', class_='link-to-software')
-                if link_elem and link_elem.get('href'):
-                    project['project_url'] = link_elem['href']
-
-                # Project image
-                img = card.find('img')
-                if img and img.get('src'):
-                    project['image_url'] = img['src']
-
-                # Hackathon name
-                hackathon_elem = card.find('span', class_='challenge-name')
-                if hackathon_elem:
-                    project['hackathon'] = hackathon_elem.get_text().strip()
-
-                # Technologies/tags
-                tech_tags = card.find_all('span', class_='cp-tag')
-                if tech_tags:
-                    project['technologies'] = [tag.get_text().strip() for tag in tech_tags]
-
-                if project.get('title'):
-                    projects.append(project)
-
-            profile_data['projects'] = projects
-
-            # Interests (if available)
-            interests = []
-            interests_section = soup.find('div', id='user-interests-tags')
-            if interests_section:
-                interest_tags = interests_section.find_all('a')
-                interests = [tag.get_text().strip() for tag in interest_tags]
-            profile_data['interests'] = interests
-
-            # Social links
-            social_links = {}
-            social_section = soup.find('ul', id='social-links')
-            if social_section:
-                links = social_section.find_all('a')
-                for link in links:
-                    href = link.get('href', '')
-                    if 'github.com' in href:
-                        social_links['github'] = href
-                    elif 'linkedin.com' in href:
-                        social_links['linkedin'] = href
-                    elif 'twitter.com' in href or 'x.com' in href:
-                        social_links['twitter'] = href
-                    elif link.get('class') and 'website' in ' '.join(link.get('class', [])):
-                        social_links['website'] = href
-
-            profile_data['social_links'] = social_links
-
-            return profile_data
-
-        except Exception as e:
-            print(f"Error scraping profile {profile_url}: {e}")
-            import traceback
-            traceback.print_exc()
-            return None
-
-        finally:
-            if driver:
-                driver.quit()
-
-
 class DevpostScraperService:
     """Service to scrape Devpost participants using Selenium"""
 
@@ -508,30 +342,22 @@ def find_teammates():
 
         data = request.get_json()
         hackathon = data.get('hackathon', '').strip()
-        user_profile_data = data.get('user_profile')  # Devpost profile from logged-in user
 
         if not hackathon:
             return jsonify({'error': 'Hackathon name is required'}), 400
 
         client = MongoClient(MONGODB_URI)
         db = client[DATABASE_NAME]
+        collection = db[COLLECTION_NAME]
 
-        # If user provided their Devpost profile, use that
-        # Otherwise fall back to first participant in hackathon
-        if user_profile_data:
-            # Use the logged-in user's profile
-            current_user = user_profile_data
-            current_user_id = f"logged_user_{current_user.get('username', 'unknown')}"
-        else:
-            # Fallback: Get the first participant from this hackathon
-            collection = db[COLLECTION_NAME]
-            current_user = collection.find_one({'hackathon': hackathon})
+        # Get the first participant from this hackathon
+        current_user = collection.find_one({'hackathon': hackathon})
 
-            if not current_user:
-                client.close()
-                return jsonify({'error': 'No participants found for this hackathon'}), 404
+        if not current_user:
+            client.close()
+            return jsonify({'error': 'No participants found for this hackathon'}), 404
 
-            current_user_id = current_user.get('participant_id')
+        current_user_id = current_user.get('participant_id')
 
         client.close()
 
@@ -542,8 +368,7 @@ def find_teammates():
             matches = matcher.find_teammates(
                 current_user_id=current_user_id,
                 hackathon=hackathon,
-                top_n=10,
-                custom_user_profile=user_profile_data  # Pass custom profile if available
+                top_n=10
             )
 
             return jsonify({
@@ -574,7 +399,6 @@ def search_teammates():
         data = request.get_json()
         hackathon = data.get('hackathon', '').strip()
         search_query = data.get('search_query', '').strip()
-        user_profile_data = data.get('user_profile')  # Devpost profile from logged-in user
 
         if not hackathon:
             return jsonify({'error': 'Hackathon name is required'}), 400
@@ -583,22 +407,17 @@ def search_teammates():
             return jsonify({'error': 'Search query is required'}), 400
 
         client = MongoClient(MONGODB_URI)
-        db = client[DATABASE_NAME]
+        db = client [DATABASE_NAME]
         collection = db[COLLECTION_NAME]
 
-        # If user provided their Devpost profile, use that
-        # Otherwise fall back to first participant in hackathon
-        if user_profile_data:
-            current_user = user_profile_data
-            current_user_id = f"logged_user_{current_user.get('username', 'unknown')}"
-        else:
-            current_user = collection.find_one({'hackathon': hackathon})
+        # Get the first participant from this hackathon
+        current_user = collection.find_one({'hackathon': hackathon})
 
-            if not current_user:
-                client.close()
-                return jsonify({'error': 'No participants found for this hackathon'}), 404
+        if not current_user:
+            client.close()
+            return jsonify({'error': 'No participants found for this hackathon'}), 404
 
-            current_user_id = current_user.get('participant_id')
+        current_user_id = current_user.get('participant_id')
 
         client.close()
 
@@ -610,8 +429,7 @@ def search_teammates():
                 current_user_id=current_user_id,
                 hackathon=hackathon,
                 search_query=search_query,
-                top_n=10,
-                custom_user_profile=user_profile_data
+                top_n=10
             )
 
             return jsonify({
@@ -623,61 +441,6 @@ def search_teammates():
             matcher.close()
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-
-@app.route('/api/scrape-profile', methods=['POST'])
-def scrape_profile():
-    """Scrape a Devpost user profile and store in MongoDB"""
-    try:
-        data = request.get_json()
-        profile_url = data.get('profile_url', '').strip()
-
-        if not profile_url:
-            return jsonify({'error': 'Profile URL is required'}), 400
-
-        # Validate URL
-        if 'devpost.com' not in profile_url:
-            return jsonify({'error': 'Invalid Devpost profile URL'}), 400
-
-        # Initialize profile scraper
-        scraper = DevpostProfileScraper()
-
-        # Scrape profile
-        print(f"Scraping profile: {profile_url}")
-        profile_data = scraper.scrape_profile(profile_url)
-
-        if not profile_data:
-            return jsonify({'error': 'Failed to scrape profile. The page may not exist or be inaccessible.'}), 404
-
-        # Store in MongoDB (separate collection for detailed profiles)
-        client = MongoClient(MONGODB_URI)
-        db = client[DATABASE_NAME]
-        profiles_collection = db['user_profiles']
-
-        # Update or insert profile (upsert based on username)
-        profiles_collection.update_one(
-            {'username': profile_data['username']},
-            {'$set': profile_data},
-            upsert=True
-        )
-
-        # Create index on username
-        profiles_collection.create_index('username', unique=True)
-        profiles_collection.create_index('profile_url')
-
-        client.close()
-
-        return jsonify({
-            'success': True,
-            'profile': profile_data,
-            'message': f'Successfully scraped profile for {profile_data.get("name", profile_data["username"])}'
-        })
-
-    except Exception as e:
-        print(f"Error in scrape_profile endpoint: {e}")
-        import traceback
-        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 

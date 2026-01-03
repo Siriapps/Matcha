@@ -37,22 +37,16 @@ export const scrapeHackathon = async (hackathonUrl) => {
 /**
  * Find AI-matched teammates for a hackathon
  * @param {string} hackathon - Hackathon name (e.g., "hackutd-2025")
- * @param {Object} userProfile - Optional: User's Devpost profile from login
  * @returns {Promise<Object>} { success, current_user, matches }
  */
-export const findTeammates = async (hackathon, userProfile = null) => {
+export const findTeammates = async (hackathon) => {
   try {
-    const body = { hackathon }
-    if (userProfile) {
-      body.user_profile = userProfile
-    }
-
     const response = await fetch(`${API_BASE_URL}/find-teammates`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ hackathon }),
     })
 
     if (!response.ok) {
@@ -93,10 +87,9 @@ export const getStats = async () => {
  * @param {string} hackathonUrl - Full Devpost URL
  * @param {function} onProgress - Callback for progress updates (0-100)
  * @param {function} onStepChange - Callback for step description updates
- * @param {Object} userProfile - Optional: User's Devpost profile from login
  * @returns {Promise<Object>} Match results with current_user and matches
  */
-export const brewTeammates = async (hackathonUrl, onProgress, onStepChange, userProfile = null) => {
+export const brewTeammates = async (hackathonUrl, onProgress, onStepChange) => {
   try {
     // Step 1: Scrape hackathon (0-50%)
     if (onStepChange) onStepChange('Scraping participant data from Devpost...')
@@ -110,7 +103,7 @@ export const brewTeammates = async (hackathonUrl, onProgress, onStepChange, user
     if (onStepChange) onStepChange(`Analyzing compatibility for ${scrapeResult.participants_count} participants...`)
     if (onProgress) onProgress(60)
 
-    const matchResult = await findTeammates(scrapeResult.hackathon, userProfile)
+    const matchResult = await findTeammates(scrapeResult.hackathon)
 
     if (onProgress) onProgress(90)
     if (onStepChange) onStepChange('Finalizing your perfect matches...')
