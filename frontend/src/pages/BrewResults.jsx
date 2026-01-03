@@ -164,10 +164,20 @@ function BrewResults() {
                           <div className="flex justify-between items-start">
                             <div>
                               <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors">{match.name}</h3>
-                              <p className="text-[#9db9a6] text-sm font-medium">{match.tagline || 'Hackathon Participant'}</p>
+                              <p className="text-[#9db9a6] text-sm font-medium">{match.role || 'Hackathon Participant'}</p>
                             </div>
                           </div>
-                          <p className="mt-3 text-sm text-gray-300 line-clamp-2">{match.reasoning || 'Great potential teammate for this hackathon!'}</p>
+
+                          {/* AI Match Reasoning */}
+                          {match.match_reason && (
+                            <div className="mt-3 p-3 bg-[#102216] border border-primary/20 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <span className="material-symbols-outlined text-primary text-[16px] mt-0.5">psychology</span>
+                                <p className="text-sm text-gray-300 flex-1">{match.match_reason}</p>
+                              </div>
+                            </div>
+                          )}
+
                           <div className="mt-4 flex flex-wrap gap-2">
                             {(match.skills || []).map((skill, skillIdx) => (
                               <span key={skillIdx} className="inline-flex items-center rounded bg-[#1e3626] px-2 py-1 text-xs font-medium text-white ring-1 ring-inset ring-white/10">
