@@ -7,12 +7,17 @@ function ProfileSetupStep2() {
   const { user, updateProfile } = useAuth()
   const [skills, setSkills] = useState(user?.skills || [])
   const [skillInput, setSkillInput] = useState('')
+  const [interests, setInterests] = useState(user?.interests || [])
+  const [interestInput, setInterestInput] = useState('')
   const [resumeFile, setResumeFile] = useState(null)
   
   // Load existing user data if available
   useEffect(() => {
     if (user?.skills) {
       setSkills(user.skills)
+    }
+    if (user?.interests) {
+      setInterests(user.interests)
     }
   }, [user])
 
@@ -28,6 +33,18 @@ function ProfileSetupStep2() {
     setSkills(skills.filter(s => s !== skill))
   }
 
+  const addInterest = (e) => {
+    if (e.key === 'Enter' && interestInput.trim()) {
+      e.preventDefault()
+      setInterests([...interests, interestInput.trim()])
+      setInterestInput('')
+    }
+  }
+
+  const removeInterest = (interest) => {
+    setInterests(interests.filter(i => i !== interest))
+  }
+
   const handleFileChange = (e) => {
     const file = e.target.files[0]
     if (file && file.type === 'application/pdf' && file.size <= 5 * 1024 * 1024) {
@@ -38,15 +55,23 @@ function ProfileSetupStep2() {
   }
 
   const handleSave = async () => {
-    // Save step 2 data (skills and resume) before going to dashboard
+    // Save step 1 + step 2 data together before going to dashboard
     if (updateProfile) {
       const result = await updateProfile({
+        // Bring forward step 1 fields to retry save if they failed earlier
+        name: user?.name || '',
+        preferredRoles: user?.preferredRoles || user?.roles || [],
+        experience: user?.experience || user?.experienceLevel || '',
+        // Step 2 fields
         skills,
+        interests,
         resume: resumeFile ? resumeFile.name : null,
       })
       
-      if (result.success) {
+      if (result?.success) {
         navigate('/dashboard', { replace: true })
+      } else {
+        alert(result?.error || 'Failed to save profile. Please try again.')
       }
     } else {
       navigate('/dashboard', { replace: true })
@@ -106,6 +131,35 @@ function ProfileSetupStep2() {
                 <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-1">
                   Add at least 3 skills to help us match you better.
                 </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Interests
+                </label>
+                <div className="min-h-[3rem] p-2 w-full rounded border border-neutral-300 dark:border-neutral-700 bg-transparent flex flex-wrap gap-2 focus-within:ring-1 focus-within:ring-neutral-900 dark:focus-within:ring-neutral-100 focus-within:border-neutral-900 dark:focus-within:border-neutral-100 transition-colors">
+                  {interests.map((interest, idx) => (
+                    <div key={idx} className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 text-xs font-medium px-2.5 py-1 rounded">
+                      {interest}
+                      <button
+                        className="ml-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 focus:outline-none"
+                        type="button"
+                        onClick={() => removeInterest(interest)}
+                      >
+                        <span className="material-icons-outlined text-[14px]">close</span>
+                      </button>
+                    </div>
+                  ))}
+                  <input
+                    className="flex-1 bg-transparent border-none focus:ring-0 p-0 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 min-w-[200px]"
+                    placeholder="Add an interest..."
+                    type="text"
+                    value={interestInput}
+                    onChange={(e) => setInterestInput(e.target.value)}
+                    onKeyPress={addInterest}
+                  />
+                </div>
+                <p className="text-xs text-neutral-500 dark:text-neutral-500">Press enter to add tags</p>
               </div>
 
               <div>

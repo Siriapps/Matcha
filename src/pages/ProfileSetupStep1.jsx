@@ -8,8 +8,6 @@ function ProfileSetupStep1() {
   const [fullName, setFullName] = useState('')
   const [selectedRoles, setSelectedRoles] = useState([])
   const [experienceLevel, setExperienceLevel] = useState('')
-  const [interests, setInterests] = useState([])
-  const [interestInput, setInterestInput] = useState('')
   
   // Load existing user data if available
   useEffect(() => {
@@ -17,7 +15,7 @@ function ProfileSetupStep1() {
       setFullName(user.name || '')
       setSelectedRoles(user.preferredRoles || [])
       setExperienceLevel(user.experience || '')
-      setInterests(user.interests || [])
+      // interests now captured in Step 2
     }
   }, [user])
 
@@ -36,29 +34,22 @@ function ProfileSetupStep1() {
     }
   }
 
-  const addInterest = (e) => {
-    if (e.key === 'Enter' && interestInput.trim()) {
-      e.preventDefault()
-      setInterests([...interests, interestInput.trim()])
-      setInterestInput('')
-    }
-  }
-
-  const removeInterest = (interest) => {
-    setInterests(interests.filter(i => i !== interest))
-  }
-
   const handleNext = async (e) => {
     e.preventDefault()
     
     // Save step 1 data before moving to step 2
     if (updateProfile) {
-      await updateProfile({
-        name: fullName || user?.name,
+      const result = await updateProfile({
+        name: fullName || user?.name || '',
         preferredRoles: selectedRoles,
         experience: experienceLevel,
-        interests: interests,
       })
+
+      // Stop if saving failed so data isn't lost
+      if (!result?.success) {
+        alert(result?.error || 'Failed to save profile. Please try again.')
+        return
+      }
     }
     
     navigate('/profile/step2')
@@ -142,34 +133,6 @@ function ProfileSetupStep1() {
                 </label>
               ))}
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300" htmlFor="interests">Interests</label>
-            <div className="min-h-[3rem] p-2 w-full rounded border border-neutral-300 dark:border-neutral-700 bg-transparent flex flex-wrap gap-2 focus-within:ring-1 focus-within:ring-neutral-900 dark:focus-within:ring-neutral-100 focus-within:border-neutral-900 dark:focus-within:border-neutral-100 transition-colors">
-              {interests.map((interest, idx) => (
-                <div key={idx} className="inline-flex items-center bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 text-xs font-medium px-2.5 py-1 rounded">
-                  {interest}
-                  <button
-                    className="ml-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 focus:outline-none"
-                    type="button"
-                    onClick={() => removeInterest(interest)}
-                  >
-                    <span className="material-icons-outlined text-[14px]">close</span>
-                  </button>
-                </div>
-              ))}
-              <input
-                className="flex-1 bg-transparent border-none focus:ring-0 p-0 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 min-w-[120px]"
-                id="interests"
-                placeholder="Add an interest..."
-                type="text"
-                value={interestInput}
-                onChange={(e) => setInterestInput(e.target.value)}
-                onKeyPress={addInterest}
-              />
-            </div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-500">Press enter to add tags</p>
           </div>
 
           <div className="pt-4 flex items-center justify-end">

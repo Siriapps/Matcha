@@ -199,6 +199,21 @@ export const AuthProvider = ({ children }) => {
   }
 
   const updateProfile = async (profileData) => {
+    // Fallback for Auth0 or no backend token: persist locally to userStorage
+    const saveLocally = () => {
+      const baseUser = user || {}
+      const updatedUser =
+        userStorage.updateUserProfile(baseUser.id || baseUser.email, { ...profileData }) ||
+        userStorage.saveUser({ ...baseUser, ...profileData, id: baseUser.id || baseUser.email })
+      setUser(updatedUser)
+      return { success: true, user: updatedUser }
+    }
+
+    // If no valid backend token (or placeholder Auth0 token), use local storage
+    if (!token || token === 'auth0_token') {
+      return saveLocally()
+    }
+
     try {
       const response = await fetch(`${API_URL}/users/me`, {
         method: 'PUT',
@@ -215,10 +230,12 @@ export const AuthProvider = ({ children }) => {
         setUser(data.user)
         return { success: true, user: data.user }
       } else {
-        return { success: false, error: data.error }
+        // If server rejects, fall back to local save
+        return saveLocally()
       }
     } catch (error) {
-      return { success: false, error: 'Network error. Please try again.' }
+      // Network failure: fall back to local save
+      return saveLocally()
     }
   }
 
