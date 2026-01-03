@@ -59,6 +59,7 @@ function Ideas() {
     }
   }, [searchParams])
 
+
   // Get user skills and roles
   const getUserSkills = () => {
     return Array.isArray(user?.skills) ? user.skills : []
@@ -87,6 +88,9 @@ function Ideas() {
       // Ensure we have a token (use 'auth0_token' for Auth0 users)
       const authToken = token || (user?.provider === 'auth0' ? 'auth0_token' : 'auth0_token')
       
+      console.log('Calling API:', `${API_URL}/ideas/generate`)
+      console.log('Request body:', { hackathonContext, skills, roles })
+      
       const response = await fetch(`${API_URL}/ideas/generate`, {
         method: 'POST',
         headers: {
@@ -99,12 +103,27 @@ function Ideas() {
           roles,
           teammates: skillContext === 'withTeammates' && selectedTeammate ? [selectedTeammate] : []
         }),
+      }).catch((fetchError) => {
+        console.error('Fetch error details:', fetchError)
+        throw new Error(`Cannot connect to server at ${API_URL}. Make sure the backend is running: cd server && npm start`)
       })
 
-      const data = await response.json()
+      if (!response) {
+        throw new Error('No response from server. Check if backend is running on port 3001.')
+      }
+
+      console.log('Response status:', response.status, response.statusText)
+
+      let data
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        console.error('Failed to parse response:', parseError)
+        throw new Error(`Server returned invalid response (status ${response.status}). Check server logs.`)
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate ideas')
+        throw new Error(data.error || `Server error: ${response.status} ${response.statusText}`)
       }
 
       const ideas = data.ideas || []
@@ -113,7 +132,11 @@ function Ideas() {
       setViewMode('gallery')
     } catch (err) {
       console.error('Error generating ideas:', err)
-      setError(err.message || 'Failed to generate ideas. Please try again.')
+      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError') || err.name === 'TypeError') {
+        setError(`Cannot connect to server. Make sure the backend is running:\n1. Open a terminal\n2. Run: cd server && npm start\n3. Wait for "Server running on http://localhost:3001"`)
+      } else {
+        setError(err.message || 'Failed to generate ideas. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -161,82 +184,129 @@ function Ideas() {
   if (loading) {
     return (
       <Layout>
-        <div className="min-h-screen flex flex-col items-center justify-center bg-background-dark p-6">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-background-dark p-6 overflow-hidden">
           <div className="max-w-4xl w-full text-center">
             {/* Animated Cards */}
             <div className="relative mb-12 flex justify-center">
               <div className="relative w-64 h-80">
-                {/* Card 1 - Most prominent */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-primary/10 rounded-xl border border-primary/30 shadow-2xl shadow-primary/20 transform rotate-3">
+                {/* Card 1 - Most prominent - Floating animation */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-primary/10 rounded-xl border border-primary/30 shadow-2xl shadow-primary/20 transform rotate-3 animate-[float_3s_ease-in-out_infinite]">
                   <div className="p-6 h-full flex flex-col">
                     <div className="flex justify-between items-start mb-4">
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center animate-pulse">
                         <span className="material-symbols-outlined text-primary">settings</span>
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center animate-pulse" style={{ animationDelay: '0.5s' }}>
                         <span className="material-symbols-outlined text-primary">person</span>
                       </div>
                     </div>
                     <div className="space-y-2 flex-1">
-                      <div className="h-3 bg-primary/20 rounded w-full"></div>
-                      <div className="h-3 bg-primary/20 rounded w-3/4"></div>
-                      <div className="h-3 bg-primary/20 rounded w-5/6"></div>
+                      <div className="h-3 bg-primary/20 rounded w-full animate-[shimmer_2s_infinite]"></div>
+                      <div className="h-3 bg-primary/20 rounded w-3/4 animate-[shimmer_2s_infinite]" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="h-3 bg-primary/20 rounded w-5/6 animate-[shimmer_2s_infinite]" style={{ animationDelay: '0.4s' }}></div>
                     </div>
                     <div className="mt-4 flex gap-2">
-                      <div className="px-3 py-1 bg-primary/20 rounded text-xs text-primary">React</div>
-                      <div className="px-3 py-1 bg-primary/20 rounded text-xs text-primary">Node</div>
-                      <div className="px-3 py-1 bg-primary/20 rounded text-xs text-primary">AI</div>
+                      <div className="px-3 py-1 bg-primary/20 rounded text-xs text-primary animate-pulse">React</div>
+                      <div className="px-3 py-1 bg-primary/20 rounded text-xs text-primary animate-pulse" style={{ animationDelay: '0.3s' }}>Node</div>
+                      <div className="px-3 py-1 bg-primary/20 rounded text-xs text-primary animate-pulse" style={{ animationDelay: '0.6s' }}>AI</div>
                     </div>
-                    <div className="absolute top-4 right-4 bg-primary/30 px-2 py-1 rounded text-xs font-bold text-white">
+                    <div className="absolute top-4 right-4 bg-primary/30 px-2 py-1 rounded text-xs font-bold text-white animate-pulse">
                       MATCH 98%
                     </div>
                   </div>
                 </div>
-                {/* Card 2 - Behind */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl border border-primary/20 shadow-lg transform -rotate-2 translate-x-4 translate-y-4 opacity-60">
+                {/* Card 2 - Behind - Slower floating */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl border border-primary/20 shadow-lg transform -rotate-2 translate-x-4 translate-y-4 opacity-60 animate-[float_4s_ease-in-out_infinite]" style={{ animationDelay: '0.5s' }}>
                 </div>
-                {/* Card 3 - Furthest */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl border border-primary/10 shadow transform rotate-1 translate-x-8 translate-y-8 opacity-40">
+                {/* Card 3 - Furthest - Slowest floating */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl border border-primary/10 shadow transform rotate-1 translate-x-8 translate-y-8 opacity-40 animate-[float_5s_ease-in-out_infinite]" style={{ animationDelay: '1s' }}>
                 </div>
               </div>
             </div>
 
-            {/* Title */}
-            <h1 className="text-5xl font-bold text-white mb-4">
-              Brewing your <span className="text-primary">perfect idea</span>...
+            {/* Title - Fade in and pulse */}
+            <h1 className="text-5xl font-bold text-white mb-4 animate-[fadeIn_1s_ease-in,glow_2s_ease-in-out_infinite]">
+              Brewing your <span className="text-primary animate-[pulse_2s_ease-in-out_infinite]">perfect idea</span>...
             </h1>
             
-            {/* Subtitle */}
-            <p className="text-text-secondary text-lg mb-8">
-              Analyzing keywords • Matching skills • Shuffling concepts
+            {/* Subtitle - Typing effect simulation */}
+            <p className="text-text-secondary text-lg mb-8 animate-[fadeIn_1.5s_ease-in]">
+              <span className="inline-block animate-[bounce_1s_ease-in-out_infinite]">Analyzing keywords</span>
+              <span className="mx-2">•</span>
+              <span className="inline-block animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0.3s' }}>Matching skills</span>
+              <span className="mx-2">•</span>
+              <span className="inline-block animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0.6s' }}>Shuffling concepts</span>
             </p>
 
-            {/* Progress Bar */}
+            {/* Progress Bar - Animated */}
             <div className="mb-8">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-primary text-sm font-medium">PROCESSING INPUTS</span>
-                <span className="text-primary text-sm font-medium">65%</span>
+                <span className="text-primary text-sm font-medium animate-pulse">PROCESSING INPUTS</span>
+                <span className="text-primary text-sm font-medium animate-[countUp_3s_ease-in-out_infinite]">65%</span>
               </div>
               <div className="w-full h-2 bg-[#28392e] rounded-full overflow-hidden">
-                <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: '65%' }}></div>
+                <div className="h-full bg-gradient-to-r from-primary via-[#0fd650] to-primary rounded-full animate-[progress_3s_ease-in-out_infinite] bg-[length:200%_100%]"></div>
               </div>
               <div className="flex justify-between items-center mt-2">
-                <span className="text-text-secondary text-sm">Step 3 of 4: Conceptualizing</span>
-                <span className="text-text-secondary text-sm">-4.2s remaining</span>
+                <span className="text-text-secondary text-sm animate-pulse">Step 3 of 4: Conceptualizing</span>
+                <span className="text-text-secondary text-sm animate-pulse">-4.2s remaining</span>
               </div>
             </div>
 
-            {/* Pro Tip */}
-            <div className="bg-[#28392e] border border-primary/20 rounded-lg p-4 flex items-start gap-3 max-w-2xl mx-auto">
-              <span className="material-symbols-outlined text-primary text-2xl">lightbulb</span>
+            {/* Pro Tip - Fade in with delay */}
+            <div className="bg-[#28392e] border border-primary/20 rounded-lg p-4 flex items-start gap-3 max-w-2xl mx-auto animate-[fadeIn_2s_ease-in,slideUp_2s_ease-out]">
+              <span className="material-symbols-outlined text-primary text-2xl animate-[spin_3s_linear_infinite]">lightbulb</span>
               <p className="text-text-secondary text-sm text-left">
                 <span className="text-primary font-semibold">Pro Tip:</span> Teams of 3-4 people are statistically 40% more likely to finish a hackathon project on time.
               </p>
             </div>
 
             {/* Copyright */}
-            <p className="text-text-secondary text-xs mt-12">©2024 Matcha. Powered by caffeine and code.</p>
+            <p className="text-text-secondary text-xs mt-12 animate-[fadeIn_2.5s_ease-in]">©2025 Matcha. Powered by caffeine and code.</p>
           </div>
+          
+          {/* Add CSS animations via style tag */}
+          <style>{`
+            @keyframes float {
+              0%, 100% { transform: translateY(0px) rotate(3deg); }
+              50% { transform: translateY(-20px) rotate(3deg); }
+            }
+            @keyframes shimmer {
+              0% { opacity: 0.3; }
+              50% { opacity: 1; }
+              100% { opacity: 0.3; }
+            }
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes glow {
+              0%, 100% { text-shadow: 0 0 10px rgba(15, 214, 80, 0.5); }
+              50% { text-shadow: 0 0 20px rgba(15, 214, 80, 0.8), 0 0 30px rgba(15, 214, 80, 0.5); }
+            }
+            @keyframes bounce {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-5px); }
+            }
+            @keyframes progress {
+              0% { width: 0%; background-position: 0% 50%; }
+              50% { width: 65%; background-position: 100% 50%; }
+              100% { width: 65%; background-position: 0% 50%; }
+            }
+            @keyframes countUp {
+              0% { opacity: 0.5; }
+              50% { opacity: 1; }
+              100% { opacity: 0.5; }
+            }
+            @keyframes slideUp {
+              from { transform: translateY(20px); opacity: 0; }
+              to { transform: translateY(0); opacity: 1; }
+            }
+            @keyframes spin {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
         </div>
       </Layout>
     )
@@ -474,13 +544,18 @@ function Ideas() {
   if (viewMode === 'detail' && selectedIdea) {
     // Derive fields if not present (for backward compatibility)
     const problemStatement = selectedIdea.problem_statement || selectedIdea.description || 'No problem statement available.'
-    const coreFeatures = selectedIdea.core_features || [
-      'Core feature implementation based on project requirements',
-      'User interface and interaction design',
-      'Data processing and storage',
-      'Integration with external services or APIs'
-    ]
-    const techStack = selectedIdea.tech_stack || ['React', 'Node.js', 'MongoDB', 'REST API']
+    // Use core_features from Gemini response, fallback only if completely missing
+    const coreFeatures = (Array.isArray(selectedIdea.core_features) && selectedIdea.core_features.length > 0)
+      ? selectedIdea.core_features
+      : [
+          'Core feature implementation based on project requirements',
+          'User interface and interaction design',
+          'Data processing and storage',
+          'Integration with external services or APIs'
+        ]
+    const techStack = (Array.isArray(selectedIdea.tech_stack) && selectedIdea.tech_stack.length > 0)
+      ? selectedIdea.tech_stack
+      : ['React', 'Node.js', 'MongoDB', 'REST API']
 
     // Tech stack icons mapping
     const techIcons = {

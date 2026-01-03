@@ -23,7 +23,10 @@ Team Skill Context:
 For each project idea, return the following fields in valid JSON:
 
 - title: short project name
-- description: 1–2 sentence summary
+- description: 3-5 sentence summary
+- problem_statement: 2–3 sentence explanation of the problem this idea solves
+- core_features: REQUIRED array of 3–5 specific, unique features for THIS idea (e.g., ["Real-time chat interface", "User authentication", "File upload system", "Search functionality"])
+- tech_stack: REQUIRED array of 3–6 specific technologies/tools for THIS idea (e.g., ["React", "Node.js", "MongoDB", "Socket.io", "AWS S3"])
 - track_alignment: list of tracks this idea fits
 - feasibility_score: integer from 1 to 10
 - scope_fit: one of ["Small", "Medium", "Large"]
@@ -31,13 +34,16 @@ For each project idea, return the following fields in valid JSON:
 - risks: 1–2 concise risks
 - why_good_fit: short explanation (1 sentence)
 
-Rules:
+IMPORTANT RULES:
+- Each idea MUST have unique core_features and tech_stack - do NOT reuse the same values across ideas
+- core_features must be specific to the project idea, not generic
+- tech_stack must match the actual technologies needed for this specific idea
 - Scores must be realistic for a 24–48 hour hackathon
 - Penalize ideas that require heavy infrastructure or niche expertise
 - Favor ideas that align clearly with the given tracks
 - Use only the provided skills and roles
 - Do not repeat similar ideas
-- Do not include implementation details beyond high level concepts
+- Include implementation details
 
 Return only valid JSON. No markdown. No commentary.`
 
@@ -101,22 +107,52 @@ async function generateIdeas(hackathonContext, skills, roles, teammates = []) {
     if (!Array.isArray(ideas)) {
       ideas = [ideas]
     }
+    
 
-    // Validate and add IDs to ideas
-    const validatedIdeas = ideas.map((idea, index) => ({
-      id: `idea_${Date.now()}_${index}`,
-      title: idea.title || `Idea ${index + 1}`,
-      description: idea.description || '',
-      track_alignment: Array.isArray(idea.track_alignment) ? idea.track_alignment : [idea.track_alignment].filter(Boolean),
-      feasibility_score: Math.max(1, Math.min(10, parseInt(idea.feasibility_score) || 5)),
-      scope_fit: ['Small', 'Medium', 'Large'].includes(idea.scope_fit) ? idea.scope_fit : 'Medium',
-      skill_coverage_percent: Math.max(0, Math.min(100, parseInt(idea.skill_coverage_percent) || 50)),
-      risks: Array.isArray(idea.risks) ? idea.risks : [idea.risks].filter(Boolean),
-      why_good_fit: idea.why_good_fit || '',
-      generatedAt: new Date().toISOString(),
-      shortlisted: false,
-      likedBy: []
-    }))
+    // Validate and add IDs to ideas, then generate coding prompts
+    const validatedIdeas = ideas.map((idea, index) => {
+      // Ensure core_features is a non-empty array
+      let coreFeatures = []
+      if (Array.isArray(idea.core_features) && idea.core_features.length > 0) {
+        coreFeatures = idea.core_features.filter(Boolean)
+      } else if (idea.core_features && typeof idea.core_features === 'string') {
+        coreFeatures = [idea.core_features]
+      }
+      
+      // Ensure tech_stack is a non-empty array
+      let techStack = []
+      if (Array.isArray(idea.tech_stack) && idea.tech_stack.length > 0) {
+        techStack = idea.tech_stack.filter(Boolean)
+      } else if (idea.tech_stack && typeof idea.tech_stack === 'string') {
+        techStack = [idea.tech_stack]
+      }
+      
+      // If still empty, log a warning (but don't fail - let frontend handle fallback)
+      if (coreFeatures.length === 0) {
+        console.warn(`Idea ${index + 1} (${idea.title || 'Untitled'}) missing core_features`)
+      }
+      if (techStack.length === 0) {
+        console.warn(`Idea ${index + 1} (${idea.title || 'Untitled'}) missing tech_stack`)
+      }
+      
+      return {
+        id: `idea_${Date.now()}_${index}`,
+        title: idea.title || `Idea ${index + 1}`,
+        description: idea.description || '',
+        problem_statement: idea.problem_statement || idea.description || '',
+        core_features: coreFeatures,
+        tech_stack: techStack,
+        track_alignment: Array.isArray(idea.track_alignment) ? idea.track_alignment : [idea.track_alignment].filter(Boolean),
+        feasibility_score: Math.max(1, Math.min(10, parseInt(idea.feasibility_score) || 5)),
+        scope_fit: ['Small', 'Medium', 'Large'].includes(idea.scope_fit) ? idea.scope_fit : 'Medium',
+        skill_coverage_percent: Math.max(0, Math.min(100, parseInt(idea.skill_coverage_percent) || 50)),
+        risks: Array.isArray(idea.risks) ? idea.risks : [idea.risks].filter(Boolean),
+        why_good_fit: idea.why_good_fit || '',
+        generatedAt: new Date().toISOString(),
+        shortlisted: false,
+        likedBy: []
+      }
+    })
 
     return validatedIdeas
   } catch (error) {

@@ -3,9 +3,21 @@ const router = express.Router()
 const { generateIdeas } = require('../utils/geminiService')
 const { optionalAuth } = require('../middleware/auth')
 
+// Test endpoint to verify connection
+router.get('/test', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'Ideas route is working',
+    timestamp: new Date().toISOString()
+  })
+})
+
 // Generate hackathon ideas
 // Uses optionalAuth to support both Auth0 users and JWT users
 router.post('/generate', optionalAuth, async (req, res) => {
+  console.log('POST /api/ideas/generate - Request received')
+  console.log('Body:', JSON.stringify(req.body, null, 2))
+  console.log('Headers:', req.headers)
   try {
     const { hackathonContext, skills, roles, teammates } = req.body
 
