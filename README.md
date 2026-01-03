@@ -1,213 +1,204 @@
-# Devpost Hackathon Scraper Web App
+# Matcha ☕
 
-A web application that scrapes Devpost hackathon participant data and stores it in MongoDB Atlas.
+**Brewing your perfect hack team**
 
-## 🎉 Your Web App is Running!
+Matcha is a team matching platform designed specifically for hackathons. It connects developers, designers, and visionaries to form high-impact teams that build projects that matter.
 
-**URL:** http://127.0.0.1:5000
+## What is Matcha?
 
-Open this URL in your browser to use the scraper!
+Matcha helps you find the right teammates for the right hackathon. Instead of scrambling at the last minute or working solo, Matcha uses intelligent matching to connect you with compatible team members based on your skills, interests, and hackathon experience.
 
-## Features
+## Why Matcha?
 
-- ✅ Simple web interface to enter hackathon URLs
-- ✅ Automatic scraping with infinite scroll support
-- ✅ Stores data directly to MongoDB Atlas
-- ✅ Real-time statistics display
-- ✅ Clears old data for the same hackathon before inserting new data
+### 🎯 **Find Your Perfect Squad**
+No more awkward team formations or working alone. Matcha matches you with teammates who complement your skills and share your interests.
 
-## How to Use
+### ⚡ **Quick Team Formation**
+Paste a Devpost or hackathon URL, and Matcha instantly starts the matching process. No lengthy forms or complicated setup—just paste and go.
 
-1. **Open the web app** in your browser:
-   ```
-   http://127.0.0.1:5000
-   ```
+### 🎨 **Skill-Based Matching**
+Our algorithm considers your preferred roles (Frontend, Backend, ML, Design), experience level, technical skills, and interests to find the best team fit.
 
-2. **Enter a Devpost hackathon URL**, for example:
-   - `https://hackutd-2025.devpost.com/`
-   - `https://hacktx2025.devpost.com/`
-   - `https://your-hackathon.devpost.com/`
+### 💬 **Built-in Communication**
+Once matched, start chatting with your potential teammates directly in the app. No need to exchange contact info or switch platforms.
 
-3. **Click "Scrape & Store Participants"**
+### 📊 **Track Your Hack History**
+Keep a record of all your hackathon projects, teams, and achievements in one place. See your growth over time and showcase your best work.
 
-4. **Wait** for the scraping to complete (may take 1-2 minutes depending on participant count)
+## How It Works
 
-5. **View statistics** showing total participants and breakdown by hackathon
+1. **Sign Up & Set Up Your Profile**
+   - Create an account with email/password or use Google/GitHub
+   - Complete your profile: preferred roles, experience level, skills, and interests
+   - Upload your resume (optional) to showcase your expertise
 
-## Project Structure
+2. **Find a Hackathon**
+   - Paste a Devpost or hackathon URL on your dashboard
+   - Matcha analyzes the hackathon and finds compatible teammates
 
-```
-Hacks_for_Hackers/
-├── app.py                      # Flask web application
-├── templates/
-│   └── index.html             # Web interface
-├── scraper_selenium.py        # Standalone Selenium scraper
-├── upload_to_mongodb.py       # Standalone MongoDB uploader
-├── participants_full.json     # Sample scraped data
-├── MONGODB_SETUP_GUIDE.md     # MongoDB setup instructions
-└── README.md                  # This file
-```
+3. **Get Matched**
+   - Review your potential teammates based on skill compatibility
+   - See their profiles, experience, and past projects
 
-## API Endpoints
+4. **Connect & Build**
+   - Start chatting with your matches directly in the app
+   - Form your team and start building something amazing
 
-### GET `/`
-- Returns the main web interface
+5. **Track Your Progress**
+   - All your hackathons, teams, and projects are saved in your dashboard
+   - Build your hackathon portfolio over time
 
-### POST `/scrape`
-- Scrapes hackathon participants and stores in MongoDB
-- **Body:** `{ "url": "https://hackathon.devpost.com/" }`
-- **Response:**
-  ```json
-  {
-    "success": true,
-    "hackathon": "hackathon-name",
-    "participants_count": 1154,
-    "message": "Successfully scraped and stored 1154 participants!"
-  }
-  ```
+## Key Features
 
-### GET `/stats`
-- Returns statistics about stored data
-- **Response:**
-  ```json
-  {
-    "total_participants": 1886,
-    "hackathons": [
-      {"name": "hackutd-2025", "count": 1154},
-      {"name": "hacktx2025", "count": 732}
-    ]
-  }
-  ```
+- **Smart Matching Algorithm**: AI-powered matching using Google Gemini to find teammates based on complementary skills and shared interests
+- **Profile Customization**: Showcase your roles, skills, experience, and interests
+- **Real-time Chat**: Communicate with potential teammates without leaving the app
+- **Hackathon History**: Track all your projects and teams in one place
+- **Multiple Authentication Options**: Sign up with email, Google, or GitHub
+- **Devpost Integration**: Scrape participant data from any Devpost hackathon
+- **Secure & Private**: Your data is protected and only shared with matched teammates
 
-## Data Stored
+## Tech Stack
 
-Each participant document in MongoDB contains:
+### Frontend
+- **React** with Vite
+- **TailwindCSS** for styling
+- **React Router** for navigation
+- **Auth0** for authentication
 
-```json
-{
-  "participant_id": "2412572",
-  "name": "Nikhil Marisetty",
-  "profile_url": "https://devpost.com/nxm230088",
-  "role": "Full-stack developer",
-  "hackathon": "hacktx2025",
-  "stats": {
-    "projects": 4,
-    "followers": 1,
-    "achievements": 5
-  },
-  "skills": ["python", "java", "javascript", "mysql", "react", "pytorch", "Machine Learning/AI"],
-  "interests": ["Machine Learning/AI"],
-  "photo_url": "https://..."
-}
-```
+### Backend
+- **Flask** - Python web framework
+- **Selenium** - Web scraping for Devpost
+- **BeautifulSoup4** - HTML parsing
+- **MongoDB Atlas** - Cloud database
+- **Google Gemini AI** - AI-powered teammate matching
+- **Node.js/Express** - API server for frontend
 
-## MongoDB Configuration
+## Quick Start
 
-The app is pre-configured to connect to your MongoDB Atlas cluster:
-- **Database:** `devpost_data`
-- **Collection:** `participants`
+### Frontend (React App)
 
-Indexes are automatically created on:
-- `hackathon`
-- `participant_id`
-- `skills`
-
-## Running the App
-
-### Start the server:
 ```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`
+
+### Backend (Python Scraper & AI Matching)
+
+```bash
+# Install Python dependencies
+pip install flask selenium beautifulsoup4 pymongo dnspython google-generativeai python-dotenv
+
+# Create .env file
+echo "GEMINI_API_KEY=your_api_key_here" > .env
+
+# Run Flask server
 python app.py
 ```
 
-The server will start on http://127.0.0.1:5000
+The Flask API will be available at `http://127.0.0.1:5000`
 
-### Stop the server:
-Press `Ctrl+C` in the terminal
-
-## Dependencies
+### Node.js Backend Server
 
 ```bash
-pip install flask selenium beautifulsoup4 pymongo dnspython
+cd server
+npm install
+npm start
 ```
 
-## Important Notes
+The Node server will be available at `http://localhost:3000`
 
-### Authentication
-- The app uses your Devpost cookies for authentication
-- Cookies are stored in `app.py` in the `DEVPOST_COOKIES` variable
-- If scraping stops working, you may need to update these cookies
+## Setup Instructions
 
-### Rate Limiting
-- The scraper includes delays between scroll actions to be respectful
-- It may take 1-2 minutes per hackathon depending on participant count
+For detailed setup instructions, see:
+- [TEAM_SETUP.md](./TEAM_SETUP.md) - Quick team setup guide
+- [SETUP_INSTRUCTIONS.md](./SETUP_INSTRUCTIONS.md) - Python backend setup
+- [START_SERVER.md](./START_SERVER.md) - Server startup guide
 
-### Data Management
-- Each time you scrape a hackathon, it **clears old data** for that specific hackathon
-- Data from other hackathons is preserved
-- Total participants across all hackathons can be viewed in the stats
+## AI Teammate Matching
 
-## Troubleshooting
+The AI matching system uses Google Gemini to analyze participant profiles and find the best matches based on:
 
-### "Authentication failed"
-- Your Devpost cookies may have expired
-- Log into Devpost in your browser and get fresh cookies
-- Update the `DEVPOST_COOKIES` in `app.py`
+- **Complementary Skills** (30%) - Diverse technical skills for well-rounded teams
+- **Shared Interests** (25%) - Common passion areas and goals
+- **Experience Balance** (20%) - Mix of experienced and learning developers
+- **Technical Stack** (15%) - Compatible languages and frameworks
+- **Track Record** (10%) - Project history and commitment
 
-### "No participants found"
-- Check that the URL is correct
-- Ensure you're using the base hackathon URL (not the /participants page)
-- Verify the hackathon exists and has participants
+### Pre-filtering Algorithm
 
-### Chrome driver issues
-- Make sure Chrome browser is installed
-- Selenium will download ChromeDriver automatically
+For large hackathons (1000+ participants), the system uses a two-stage approach:
+1. **Quick pre-filter**: Scores all participants based on complementary skills, shared interests, and experience
+2. **AI analysis**: Top 50 candidates get detailed Gemini AI analysis
 
-## Advanced Usage
+This reduces processing time by ~95% while maintaining match quality.
 
-### Query MongoDB from Python
+## API Endpoints
 
-```python
-from pymongo import MongoClient
+### Python Backend (Flask)
 
-client = MongoClient("your_connection_string")
-db = client.devpost_data
-collection = db.participants
+- `POST /scrape` - Scrape Devpost hackathon participants
+- `POST /find-teammates` - Find AI-matched teammates
+- `GET /stats` - Get database statistics
 
-# Find all Python developers from HackUTD
-python_devs = collection.find({
-    "hackathon": "hackutd-2025",
-    "skills": "python"
-})
+### Node.js Backend (Express)
 
-for dev in python_devs:
-    print(f"{dev['name']} - {dev.get('role', 'No role')}")
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `GET /api/users/profile` - Get user profile
+- `PUT /api/users/profile` - Update user profile
+
+## Who Is Matcha For?
+
+- **Hackathon Enthusiasts**: Regular participants looking for reliable teammates
+- **First-Timers**: New to hackathons? Find experienced teammates to guide you
+- **Solo Developers**: Don't have a team? Matcha finds one for you
+- **Skill Builders**: Connect with people who can help you learn and grow
+- **Project Creators**: Build meaningful projects with the right team
+
+## The Matcha Philosophy
+
+Great ideas shouldn't go to waste because you couldn't find the right team. Matcha believes that the best projects come from diverse teams with complementary skills, shared passion, and clear communication. We're here to make team formation as smooth as your morning matcha—simple, effective, and energizing.
+
+## Environment Variables
+
+Create a `.env` file in the root directory:
+
+```bash
+# Google Gemini API (for AI matching)
+GEMINI_API_KEY=your_gemini_api_key
+
+# MongoDB (already configured in app.py)
+MONGODB_URI=your_mongodb_uri
+
+# Server port (optional)
+PORT=5000
 ```
 
-### Using the Standalone Scripts
+## Contributing
 
-If you prefer command-line tools:
-
-1. **Selenium scraper:**
-   ```bash
-   python scraper_selenium.py
-   ```
-   Saves to `participants_full.json`
-
-2. **MongoDB uploader:**
-   ```bash
-   export MONGODB_URI="your_connection_string"
-   python upload_to_mongodb.py
-   ```
+Contributions are welcome! Please see [TEAM_SETUP.md](./TEAM_SETUP.md) for development setup.
 
 ## License
 
-MIT License - Feel free to use this for your hackathon needs!
+MIT License - Free to use and modify
 
 ## Credits
 
 Built with:
-- Flask - Web framework
-- Selenium - Web scraping
-- BeautifulSoup4 - HTML parsing
-- MongoDB Atlas - Database
-- Chrome - Headless browser
+- Flask (Python web framework)
+- Selenium (Web scraping)
+- Google Gemini AI (Teammate matching)
+- MongoDB Atlas (Database)
+- React + Vite (Frontend)
+- TailwindCSS (Styling)
+- Auth0 (Authentication)
+
+---
+
+**Ready to brew your perfect team?** Get started by running both the frontend and backend servers!
