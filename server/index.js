@@ -5,6 +5,7 @@ const cors = require('cors')
 
 const authRoutes = require('./routes/auth')
 const userRoutes = require('./routes/users')
+const ideaRoutes = require('./routes/ideas')
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -20,6 +21,7 @@ app.use(express.urlencoded({ extended: true }))
 // Routes
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/ideas', ideaRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {

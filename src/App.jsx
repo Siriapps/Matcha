@@ -13,6 +13,7 @@ import BrewResults from './pages/BrewResults'
 import Brewing from './pages/Brewing'
 import Messages from './pages/Messages'
 import Settings from './pages/Settings'
+import Ideas from './pages/Ideas'
 
 function App() {
   return (
@@ -77,6 +78,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Settings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ideas"
+            element={
+              <ProtectedRoute>
+                <Ideas />
               </ProtectedRoute>
             }
           />

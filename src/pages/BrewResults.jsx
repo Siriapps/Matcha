@@ -153,7 +153,11 @@ function BrewResults() {
                         <span className="material-symbols-outlined text-[18px]">chat</span>
                         Chat
                       </button>
-                      <button className="w-full sm:w-auto bg-transparent border border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors" title="Generate Icebreaker Ideas">
+                      <button
+                        onClick={() => navigate(`/ideas?teammateId=${brewer.id}&teammateName=${encodeURIComponent(brewer.name)}`)}
+                        className="w-full sm:w-auto bg-transparent border border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors"
+                        title="Generate Ideas with this teammate"
+                      >
                         <span className="material-symbols-outlined text-[18px]">lightbulb</span>
                         <span className="sr-only sm:not-sr-only">Ideas</span>
                       </button>

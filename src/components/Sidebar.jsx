@@ -13,6 +13,7 @@ function Sidebar() {
   const navItems = [
     { path: '/dashboard', icon: 'dashboard', label: 'Dashboard' },
     { path: '/results', icon: 'group', label: 'Matches' },
+    { path: '/ideas', icon: 'lightbulb', label: 'Ideas' },
     { path: '/messages', icon: 'chat_bubble', label: 'Messages', badge: 3 },
     { path: '/settings', icon: 'settings', label: 'Settings' },
   ]
