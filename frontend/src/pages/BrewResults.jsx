@@ -193,16 +193,24 @@ function BrewResults() {
                             Request
                           </button>
                           <button
-                            onClick={() => handleChat(match.devpost_url || idx, match.name)}
+                            onClick={() => handleChat(match.profile_url || idx, match.name)}
                             className="flex-1 min-w-[100px] bg-[#28392e] hover:bg-[#344a3b] text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors border border-transparent hover:border-white/10"
                           >
                             <span className="material-symbols-outlined text-[18px]">chat</span>
                             Chat
                           </button>
-                          <button className="w-full sm:w-auto bg-transparent border border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors" title="Generate Icebreaker Ideas">
-                            <span className="material-symbols-outlined text-[18px]">lightbulb</span>
-                            <span className="sr-only sm:not-sr-only">Ideas</span>
-                          </button>
+                          {match.profile_url && (
+                            <a
+                              href={match.profile_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full sm:w-auto bg-transparent border border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors"
+                              title="View Devpost Profile"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">person</span>
+                              <span className="sr-only sm:not-sr-only">Profile</span>
+                            </a>
+                          )}
                         </div>
                       </div>
                     </article>
