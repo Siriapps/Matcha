@@ -97,10 +97,21 @@ class TeammateMatcher:
             matches = self._analyze_batch(current_user_profile, batch)
             all_matches.extend(matches)
 
-        # Sort by match score and return top N
-        all_matches.sort(key=lambda x: x['match_score'], reverse=True)
+        # Deduplicate matches by participant_id (keep highest score for each person)
+        seen_ids = {}
+        for match in all_matches:
+            participant_id = match.get('participant_id')
+            if participant_id:
+                if participant_id not in seen_ids or match['match_score'] > seen_ids[participant_id]['match_score']:
+                    seen_ids[participant_id] = match
+
+        # Convert back to list and sort by match score
+        deduplicated_matches = list(seen_ids.values())
+        deduplicated_matches.sort(key=lambda x: x['match_score'], reverse=True)
+
+        print(f"Total matches after deduplication: {len(deduplicated_matches)}")
         print(f"Returning top {top_n} matches")
-        return all_matches[:top_n]
+        return deduplicated_matches[:top_n]
 
     def _format_profile(self, participant: Dict) -> str:
         """Format participant data into a readable profile"""

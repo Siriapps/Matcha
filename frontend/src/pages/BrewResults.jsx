@@ -1,47 +1,38 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 
 function BrewResults() {
   const navigate = useNavigate()
-  const [filters, setFilters] = useState(['Skill: React', 'Role: Frontend'])
+  const [filters, setFilters] = useState([])
+  const [brewResults, setBrewResults] = useState(null)
+  const [currentUser, setCurrentUser] = useState(null)
+  const [matches, setMatches] = useState([])
+
+  // Load results from sessionStorage on mount
+  useEffect(() => {
+    const storedResults = sessionStorage.getItem('brew_results')
+
+    if (!storedResults) {
+      // No results found, redirect to dashboard
+      navigate('/dashboard')
+      return
+    }
+
+    try {
+      const results = JSON.parse(storedResults)
+      setBrewResults(results)
+      setCurrentUser(results.current_user || null)
+      setMatches(results.matches || [])
+    } catch (error) {
+      console.error('Failed to parse brew results:', error)
+      navigate('/dashboard')
+    }
+  }, [navigate])
 
   const removeFilter = (filter) => {
     setFilters(filters.filter(f => f !== filter))
   }
-
-  const brewers = [
-    {
-      id: 1,
-      name: 'Alex Chen',
-      title: 'Full Stack Wizard',
-      match: 98,
-      location: 'San Francisco, CA',
-      description: 'Obsessed with clean code and dark mode UIs. Looking for a team to build a fintech tool. I bring coffee ☕️ and killer React skills.',
-      skills: ['React', 'Node.js', 'Figma'],
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAwS_Hh67CDAofuHoeOrdA3mM9jab5aJU1vb2VKeq_0saXg6nsiGYOJZJGyNFkRjenXyQ_nmzC_NAXwL5j8tYm1cAmaHDWCKVM4GzOBhIXORfxaD35mnEvSrEG66hoOwrCrN_Y4cmb1TI-w_wi3auuC7hXmMn9z18PinbvMdN8fqzdhsgvrucfmkS8cCykIySbMPWeSJnTx4whss_ewgO1ndsXVJP3mzeLsLSEkFAYuANAeqSNEs4ernD-5-buM_SUEUxH5IlyPCdk',
-    },
-    {
-      id: 2,
-      name: 'Sarah Miller',
-      title: 'UX/UI Designer',
-      match: 85,
-      location: 'New York, NY',
-      description: 'I turn complex logic into simple, beautiful interfaces. Seeking backend devs to pair with. Let\'s win this hackathon!',
-      skills: ['Figma', 'Tailwind', 'Prototyping'],
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCG-4GqU_2hDt1gTPSLHY2n0KZXDObLMJhnyzVDjMm4MRpOXFsO-hnrPnfX5mYtOsyqoO-q--vxLI1UMo3b61TB56JsLfWhFSYRchR_GlqddwwyvW2pKeAHUOGduWydHCbKO_yt6yfSjMeY4wyZLNXypMi1YZJPPHGzsqMsxuJVy0sHdOWpv92UhxUnqGC3Yw0QOR5rVw76dkNwZNnX2aGxFYYqey06fU2zrhN7fDYlN6ehgQNbYWFRAmxJk3HP-t4lucozrNkXw9s',
-    },
-    {
-      id: 3,
-      name: 'Davi Patel',
-      title: 'Backend Engineer',
-      match: 82,
-      location: 'Austin, TX',
-      description: 'Specialist in Python and Django. I can handle the API architecture while you make it look pretty.',
-      skills: ['Python', 'Django', 'SQL'],
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB53ryvqnNh21xzDhquX5Hg6E3CzeJiZp5fQdNtr1Pr7Swg2c7MdYvRcTHS35c-vQB9n8toxS_kyNeei6_AQM_a3eiz1jFvkcQ2DpHbvdh9cjFWxNfamIzFxzRMKD8fRNbS6QBUeahPrdpEXgYpNqffO8AMOjfF5xDXAKlrpq0jmVJsCTXZ6kPK3jNZBxjGnrrSY8PpgB57fxU-QU8X2DsUVw0QTGZYk6r1bVa0TY8aBpUmjDo_SiNqAXQ4ruweNyQtq-QpojN-aB4',
-    },
-  ]
 
   const handleChat = (brewerId, brewerName) => {
     navigate(`/messages?user=${brewerId}&name=${encodeURIComponent(brewerName)}`)
@@ -58,9 +49,11 @@ function BrewResults() {
                 <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white">
                   Your <span className="text-primary">Brew</span> Results
                 </h2>
-                <p className="text-[#9db9a6] text-lg max-w-2xl">
-                  We found <span className="text-white font-bold">12 brewers</span> compatible with your skills in <span className="text-white border-b border-primary/50">React</span> and <span className="text-white border-b border-primary/50">Python</span>.
-                </p>
+                {brewResults && (
+                  <p className="text-[#9db9a6] text-lg max-w-2xl">
+                    We found <span className="text-white font-bold">{matches.length} {matches.length === 1 ? 'brewer' : 'brewers'}</span> for <span className="text-white border-b border-primary/50">{brewResults.hackathon_name || 'this hackathon'}</span> ({brewResults.total_participants || 0} total participants).
+                  </p>
+                )}
               </div>
               {/* Main Actions */}
               <div className="flex gap-3">
@@ -98,76 +91,87 @@ function BrewResults() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left Column: Results Feed (8 cols) */}
             <div className="lg:col-span-8 flex flex-col gap-6">
-              {brewers.map((brewer) => (
-                <article
-                  key={brewer.id}
-                  className="group relative flex flex-col sm:flex-row gap-0 sm:gap-6 rounded-xl bg-surface-dark border border-[#28392e] p-5 shadow-lg transition hover:border-primary/30 hover:shadow-[0_0_20px_rgba(19,236,91,0.05)]"
-                >
-                  {/* Match Badge */}
-                  <div className={`absolute -top-3 -right-3 z-10 flex h-14 w-14 flex-col items-center justify-center rounded-full bg-[#102216] border-2 ${brewer.match >= 90 ? 'border-primary' : 'border-[#1e3626]'} shadow-lg`}>
-                    <span className={`text-xs font-bold ${brewer.match >= 90 ? 'text-primary' : 'text-white'}`}>{brewer.match}%</span>
-                    <span className={`text-[10px] ${brewer.match >= 90 ? 'text-primary/80' : 'text-gray-400'} uppercase tracking-tighter`}>Match</span>
-                  </div>
-                  {/* Avatar Side */}
-                  <div className="flex-shrink-0 w-full sm:w-48 h-48 sm:h-auto relative rounded-lg overflow-hidden bg-gray-800 mb-4 sm:mb-0">
-                    <img
-                      alt={`Portrait of ${brewer.name}`}
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                      src={brewer.image}
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
-                      <div className="flex items-center gap-1 text-xs font-medium text-white">
-                        <span className="material-symbols-outlined text-[14px] text-primary">location_on</span>
-                        {brewer.location}
+              {matches.length > 0 ? (
+                <>
+                  {matches.map((match, idx) => (
+                    <article
+                      key={idx}
+                      className="group relative flex flex-col sm:flex-row gap-0 sm:gap-6 rounded-xl bg-surface-dark border border-[#28392e] p-5 shadow-lg transition hover:border-primary/30 hover:shadow-[0_0_20px_rgba(19,236,91,0.05)]"
+                    >
+                      {/* Match Badge */}
+                      <div className={`absolute -top-3 -right-3 z-10 flex h-14 w-14 flex-col items-center justify-center rounded-full bg-[#102216] border-2 ${match.match_score >= 90 ? 'border-primary' : 'border-[#1e3626]'} shadow-lg`}>
+                        <span className={`text-xs font-bold ${match.match_score >= 90 ? 'text-primary' : 'text-white'}`}>{match.match_score}%</span>
+                        <span className={`text-[10px] ${match.match_score >= 90 ? 'text-primary/80' : 'text-gray-400'} uppercase tracking-tighter`}>Match</span>
                       </div>
-                    </div>
-                  </div>
-                  {/* Content Side */}
-                  <div className="flex flex-1 flex-col justify-between gap-4">
-                    <div>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors">{brewer.name}</h3>
-                          <p className="text-[#9db9a6] text-sm font-medium">{brewer.title}</p>
+                      {/* Avatar Side */}
+                      <div className="flex-shrink-0 w-full sm:w-48 h-48 sm:h-auto relative rounded-lg overflow-hidden bg-gray-800 mb-4 sm:mb-0">
+                        <img
+                          alt={`Portrait of ${match.name}`}
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                          src={match.photo_url || 'https://via.placeholder.com/400x400?text=No+Image'}
+                        />
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                          <div className="flex items-center gap-1 text-xs font-medium text-white">
+                            <span className="material-symbols-outlined text-[14px] text-primary">location_on</span>
+                            {match.location || 'Location not specified'}
+                          </div>
                         </div>
                       </div>
-                      <p className="mt-3 text-sm text-gray-300 line-clamp-2">{brewer.description}</p>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {brewer.skills.map((skill, idx) => (
-                          <span key={idx} className="inline-flex items-center rounded bg-[#1e3626] px-2 py-1 text-xs font-medium text-white ring-1 ring-inset ring-white/10">
-                            {skill}
-                          </span>
-                        ))}
+                      {/* Content Side */}
+                      <div className="flex flex-1 flex-col justify-between gap-4">
+                        <div>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors">{match.name}</h3>
+                              <p className="text-[#9db9a6] text-sm font-medium">{match.tagline || 'Hackathon Participant'}</p>
+                            </div>
+                          </div>
+                          <p className="mt-3 text-sm text-gray-300 line-clamp-2">{match.reasoning || 'Great potential teammate for this hackathon!'}</p>
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {(match.skills || []).map((skill, skillIdx) => (
+                              <span key={skillIdx} className="inline-flex items-center rounded bg-[#1e3626] px-2 py-1 text-xs font-medium text-white ring-1 ring-inset ring-white/10">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        {/* Action Bar */}
+                        <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-white/5 mt-2">
+                          <button className="flex-1 min-w-[120px] bg-primary hover:bg-[#0fd650] text-black font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-all transform active:scale-95">
+                            <span className="material-symbols-outlined text-[18px]">handshake</span>
+                            Request
+                          </button>
+                          <button
+                            onClick={() => handleChat(match.devpost_url || idx, match.name)}
+                            className="flex-1 min-w-[100px] bg-[#28392e] hover:bg-[#344a3b] text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors border border-transparent hover:border-white/10"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">chat</span>
+                            Chat
+                          </button>
+                          <button className="w-full sm:w-auto bg-transparent border border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors" title="Generate Icebreaker Ideas">
+                            <span className="material-symbols-outlined text-[18px]">lightbulb</span>
+                            <span className="sr-only sm:not-sr-only">Ideas</span>
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                    {/* Action Bar */}
-                    <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-white/5 mt-2">
-                      <button className="flex-1 min-w-[120px] bg-primary hover:bg-[#0fd650] text-black font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-all transform active:scale-95">
-                        <span className="material-symbols-outlined text-[18px]">handshake</span>
-                        Request
-                      </button>
-                      <button
-                        onClick={() => handleChat(brewer.id, brewer.name)}
-                        className="flex-1 min-w-[100px] bg-[#28392e] hover:bg-[#344a3b] text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors border border-transparent hover:border-white/10"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">chat</span>
-                        Chat
-                      </button>
-                      <button className="w-full sm:w-auto bg-transparent border border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors" title="Generate Icebreaker Ideas">
-                        <span className="material-symbols-outlined text-[18px]">lightbulb</span>
-                        <span className="sr-only sm:not-sr-only">Ideas</span>
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              ))}
-              {/* Load More */}
-              <div className="flex justify-center pt-4">
-                <button className="group flex items-center gap-2 text-[#9db9a6] hover:text-white transition-colors text-sm font-medium">
-                  <span>Show more candidates</span>
-                  <span className="material-symbols-outlined transition-transform group-hover:translate-y-1">expand_more</span>
-                </button>
-              </div>
+                    </article>
+                  ))}
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 px-6 bg-surface-dark border border-[#28392e] rounded-xl">
+                  <span className="material-symbols-outlined text-[#9db9a6] text-6xl mb-4">sentiment_dissatisfied</span>
+                  <h3 className="text-xl font-bold text-white mb-2">No matches found</h3>
+                  <p className="text-[#9db9a6] text-center max-w-md">
+                    We couldn't find any compatible teammates for this hackathon. Try brewing again later or adjust your profile.
+                  </p>
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="mt-6 px-6 py-3 bg-primary text-black rounded-lg font-bold hover:bg-[#0fd650] transition-colors"
+                  >
+                    Back to Dashboard
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Right Column: Sidebar (4 cols) */}

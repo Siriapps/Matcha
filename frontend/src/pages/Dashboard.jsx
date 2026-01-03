@@ -17,7 +17,8 @@ function Dashboard() {
 
   const handleFindTeammates = () => {
     if (hackathonUrl.trim()) {
-      navigate('/brewing')
+      // Pass hackathon URL to brewing page via state
+      navigate('/brewing', { state: { hackathonUrl } })
     } else {
       alert('Please enter a hackathon URL')
     }

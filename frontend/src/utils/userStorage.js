@@ -26,6 +26,22 @@ export const userStorage = {
     return users.find(user => user.email === email)
   },
 
+  // Get current logged in user
+  getUser: () => {
+    try {
+      const data = localStorage.getItem('matcha_current_user')
+      return data ? JSON.parse(data) : null
+    } catch (error) {
+      console.error('Error reading current user:', error)
+      return null
+    }
+  },
+
+  // Clear current user (logout)
+  clearUser: () => {
+    localStorage.removeItem('matcha_current_user')
+  },
+
   // Save or update user
   saveUser: (userData) => {
     const users = userStorage.getAllUsers()

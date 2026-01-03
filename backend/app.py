@@ -89,25 +89,37 @@ class DevpostScraperService:
             if "Please log in" in driver.page_source:
                 return None, hackathon_name, "Authentication failed - cookies may be expired"
 
-            # Scroll to load all participants
+            # Scroll to load all participants with improved logic
             last_height = driver.execute_script("return document.body.scrollHeight")
             participants_count = 0
+            no_change_count = 0
+            max_no_change = 3  # Allow 3 consecutive no-change attempts before stopping
 
-            while True:
+            print("Starting to scroll and load participants...")
+
+            while no_change_count < max_no_change:
+                # Scroll to bottom
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(2)
+                time.sleep(2.5)  # Increased wait time for slower networks
 
+                # Count participants
                 current_count = len(driver.find_elements(By.CLASS_NAME, "participant"))
-                if current_count > participants_count:
-                    participants_count = current_count
-                else:
-                    new_height = driver.execute_script("return document.body.scrollHeight")
-                    if new_height == last_height:
-                        break
-                    last_height = new_height
-                    continue
 
-                last_height = driver.execute_script("return document.body.scrollHeight")
+                if current_count > participants_count:
+                    print(f"Found {current_count} participants so far...")
+                    participants_count = current_count
+                    no_change_count = 0  # Reset counter when we find new participants
+                else:
+                    no_change_count += 1
+                    print(f"No new participants found (attempt {no_change_count}/{max_no_change})")
+
+                # Check if page height changed
+                new_height = driver.execute_script("return document.body.scrollHeight")
+                if new_height == last_height and no_change_count >= max_no_change:
+                    break
+                last_height = new_height
+
+            print(f"Finished scrolling. Total participants found: {participants_count}")
 
             # Parse the page
             soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -267,8 +279,9 @@ def scrape_and_store():
         db = client[DATABASE_NAME]
         collection = db[COLLECTION_NAME]
 
-        # Clear existing data for this hackathon
-        collection.delete_many({'hackathon': hackathon_name})
+        # Clear entire MongoDB collection before inserting new data
+        collection.delete_many({})
+        print(f"Cleared entire MongoDB collection before inserting new data")
 
         # Insert new data
         if participants:
