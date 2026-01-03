@@ -22,7 +22,7 @@ function Sidebar() {
   const handleLogout = () => {
     // Check if user is logged in via Auth0
     if (user?.provider === 'auth0') {
-      auth0Logout({ returnTo: window.location.origin + '/login' })
+      auth0Logout({ returnTo: window.location.origin + '/' })
     } else {
       logout()
     }

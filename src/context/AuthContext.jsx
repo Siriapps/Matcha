@@ -158,9 +158,9 @@ export const AuthProvider = ({ children }) => {
     // If Auth0 user, logout from Auth0
     if (auth0IsAuthenticated) {
       // Auth0 logout will be handled by the component using logoutWithRedirect
-      window.location.href = '/login'
+      window.location.href = '/'
     } else {
-      window.location.href = '/login'
+      window.location.href = '/'
     }
   }
 
