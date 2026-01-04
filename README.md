@@ -21,14 +21,6 @@ Matcha uses **Google Gemini AI** to analyze skills, interests, and hackathon goa
 
 ---
 
-## Demo Video
-
-[![Matcha Demo](https://img.youtube.com/vi/bx2dYwqAUJI/maxresdefault.jpg)](https://youtu.be/bx2dYwqAUJI)
-
-**Watch the full demo:** [https://youtu.be/bx2dYwqAUJI](https://youtu.be/bx2dYwqAUJI)
-
----
-
 ## Features
 
 ### AI-Powered Matching
