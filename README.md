@@ -3,8 +3,6 @@
 <div align="center">
   
 [![Demo Video](https://img.shields.io/badge/▶️_Watch_Demo-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/bx2dYwqAUJI)
-[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-00C7B7?style=for-the-badge)](https://matcha.app)
-[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
 **Don't let a great idea go to waste. Connect with developers, designers, and visionaries.**
 
