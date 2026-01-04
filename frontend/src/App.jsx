@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard'
 import BrewResults from './pages/BrewResults'
 import Brewing from './pages/Brewing'
 import Messages from './pages/Messages'
+import Team from './pages/Team'
 import Settings from './pages/Settings'
 
 function App() {
@@ -78,6 +79,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Messages />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/team"
+            element={
+              <ProtectedRoute>
+                <Team />
               </ProtectedRoute>
             }
           />

@@ -14,6 +14,7 @@ function Sidebar() {
     { path: '/dashboard', icon: 'dashboard', label: 'Dashboard' },
     { path: '/results', icon: 'group', label: 'Matches' },
     { path: '/messages', icon: 'chat_bubble', label: 'Messages', badge: 3 },
+    { path: '/team', icon: 'groups', label: 'Team' },
     { path: '/settings', icon: 'settings', label: 'Settings' },
   ]
 

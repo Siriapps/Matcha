@@ -7,9 +7,11 @@ from bs4 import BeautifulSoup
 from pymongo import MongoClient
 import time
 import os
+import json
 from typing import List, Dict
 from teammate_matcher import TeammateMatcher
 from dotenv import load_dotenv
+import google.generativeai as genai
 
 # Load environment variables from .env file
 load_dotenv()
@@ -439,6 +441,137 @@ def search_teammates():
 
         finally:
             matcher.close()
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/generate-ideas', methods=['POST'])
+def generate_ideas():
+    """Generate hackathon project ideas based on team composition"""
+    try:
+        if not GEMINI_API_KEY:
+            return jsonify({'error': 'Gemini API key not configured'}), 500
+
+        data = request.get_json()
+        team_members = data.get('team_members', [])
+        hackathon_name = data.get('hackathon_name', 'hackathon')
+
+        if not team_members or len(team_members) == 0:
+            return jsonify({'error': 'Team members list is required'}), 400
+
+        # Extract team skills and experience levels
+        all_skills = []
+        experience_levels = []
+        roles = []
+
+        for member in team_members:
+            member_skills = member.get('skills', [])
+            if isinstance(member_skills, list):
+                all_skills.extend(member_skills)
+
+            experience = member.get('experience', 'intermediate')
+            experience_levels.append(experience)
+
+            role = member.get('role', '')
+            if role:
+                roles.append(role)
+
+        # Remove duplicates and create summary
+        unique_skills = list(set(all_skills))
+        skill_summary = ', '.join(unique_skills[:15])  # Limit to top 15 skills
+
+        # Count experience levels
+        beginner_count = experience_levels.count('beginner')
+        intermediate_count = experience_levels.count('intermediate')
+        advanced_count = experience_levels.count('advanced')
+
+        team_size = len(team_members)
+
+        # Create prompt for Gemini
+        genai.configure(api_key=GEMINI_API_KEY)
+        model = genai.GenerativeModel('gemini-2.5-flash')
+
+        prompt = f"""You are a hackathon project advisor. Generate 5 creative and feasible project ideas for a team with the following composition:
+
+Team Size: {team_size} members
+Skills: {skill_summary}
+Experience Levels: {beginner_count} beginner(s), {intermediate_count} intermediate, {advanced_count} advanced
+Roles: {', '.join(roles) if roles else 'Various'}
+Hackathon: {hackathon_name}
+
+For each project idea, provide:
+1. Project Title (catchy and descriptive)
+2. Brief Description (2-3 sentences)
+3. Key Features (3-4 bullet points)
+4. Technology Stack (based on team skills)
+5. Feasibility Score (1-10, where 10 is most feasible given the team's skills)
+
+Format your response as a JSON array with this structure:
+[
+  {{
+    "title": "Project Title",
+    "description": "Brief description",
+    "features": ["Feature 1", "Feature 2", "Feature 3"],
+    "techStack": ["Tech 1", "Tech 2", "Tech 3"],
+    "feasibility": 8
+  }}
+]
+
+Make sure the ideas are innovative, achievable within a hackathon timeframe, and well-suited to the team's collective skill set."""
+
+        try:
+            response = model.generate_content(prompt)
+            response_text = response.text.strip()
+            original_response = response_text
+
+            # Extract JSON from response (handle markdown code blocks)
+            # Try multiple extraction methods
+            if '```json' in response_text.lower():
+                # Handle ```json ... ```
+                parts = response_text.lower().split('```json')
+                if len(parts) > 1:
+                    # Get the part after ```json
+                    after_marker = response_text[response_text.lower().find('```json') + 7:]
+                    response_text = after_marker.split('```')[0].strip()
+            elif '```' in response_text:
+                # Handle ``` ... ```
+                parts = response_text.split('```')
+                if len(parts) > 1:
+                    response_text = parts[1].strip()
+
+            # Try to find JSON array pattern if extraction failed
+            if not response_text.startswith('['):
+                # Look for the first [ and last ]
+                start_idx = response_text.find('[')
+                end_idx = response_text.rfind(']')
+                if start_idx != -1 and end_idx != -1:
+                    response_text = response_text[start_idx:end_idx+1]
+
+            ideas = json.loads(response_text)
+
+            return jsonify({
+                'success': True,
+                'ideas': ideas,
+                'team_summary': {
+                    'size': team_size,
+                    'top_skills': unique_skills[:10],
+                    'experience_distribution': {
+                        'beginner': beginner_count,
+                        'intermediate': intermediate_count,
+                        'advanced': advanced_count
+                    }
+                }
+            })
+
+        except json.JSONDecodeError as e:
+            # Fallback: return raw response if JSON parsing fails
+            return jsonify({
+                'success': True,
+                'ideas': [],
+                'raw_response': original_response,
+                'error': f'Failed to parse AI response: {str(e)}'
+            })
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500

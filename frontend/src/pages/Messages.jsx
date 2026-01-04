@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
+import { teamStorage } from '../utils/teamStorage'
 
 function Messages() {
   const [searchParams] = useSearchParams()
@@ -17,6 +18,9 @@ function Messages() {
     const userId = searchParams.get('user')
     const userName = searchParams.get('name')
     const preTypedMessage = searchParams.get('message')
+    const userSkills = searchParams.get('skills')
+    const userExperience = searchParams.get('experience')
+    const userRole = searchParams.get('role')
 
     if (userId && userName) {
       // Find or create conversation
@@ -32,6 +36,9 @@ function Messages() {
           lastMessage: '',
           time: 'now',
           unread: 0,
+          skills: userSkills ? JSON.parse(decodeURIComponent(userSkills)) : [],
+          experience: userExperience ? decodeURIComponent(userExperience) : 'intermediate',
+          role: userRole ? decodeURIComponent(userRole) : 'Hackathon Participant'
         }
         setConversations([chat, ...conversations])
       }
@@ -82,12 +89,15 @@ function Messages() {
 
     setMessage('')
 
+    // Check if this is the first real message (excluding system messages)
+    const isFirstMessage = updatedMessages.filter(msg => msg.type !== 'system' && msg.sender === 'You').length === 1
+
     // Auto-response after 2 seconds
     setTimeout(() => {
       const autoResponse = {
         id: Date.now() + 1,
         sender: selectedChat.name,
-        text: "That sounds great! I'd love to collaborate. What ideas do you have in mind for the hackathon?",
+        text: "Sure, I'd love to join!",
         time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       }
 
@@ -95,6 +105,36 @@ function Messages() {
         ...prevMessages,
         [selectedChat.id]: [...(prevMessages[selectedChat.id] || []), autoResponse],
       }))
+
+      // If this is the first message, add teammate to team after they respond
+      if (isFirstMessage) {
+        // Add teammate to team
+        const teamMember = {
+          id: selectedChat.id,
+          name: selectedChat.name,
+          avatar: selectedChat.avatar,
+          skills: selectedChat.skills || [],
+          experience: selectedChat.experience || 'intermediate',
+          role: selectedChat.role || 'Hackathon Participant'
+        }
+
+        teamStorage.addMember(teamMember)
+
+        // Add system message confirming they joined the team
+        setTimeout(() => {
+          const teamJoinMessage = {
+            id: Date.now() + 2,
+            type: 'system',
+            text: `${selectedChat.name} has joined your team!`,
+            time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          }
+
+          setMessages(prevMessages => ({
+            ...prevMessages,
+            [selectedChat.id]: [...(prevMessages[selectedChat.id] || []), teamJoinMessage],
+          }))
+        }, 1000)
+      }
     }, 2000)
   }
 
