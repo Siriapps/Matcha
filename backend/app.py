@@ -20,7 +20,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
 
 # MongoDB configuration
-MONGODB_URI = "mongodb+srv://sainikhil1611_db_user:LrCOwJCDgBRI4mCh@hack-for-hacks.hg2vjaf.mongodb.net/?appName=Hack-for-Hacks"
+MONGODB_URI = os.getenv("MONGODB_URI")
 DATABASE_NAME = "devpost_data"
 COLLECTION_NAME = "participants"
 
