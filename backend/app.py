@@ -21,19 +21,19 @@ CORS(app)  # Enable CORS for React frontend
 
 # MongoDB configuration
 MONGODB_URI = os.getenv("MONGODB_URI")
-DATABASE_NAME = "devpost_data"
-COLLECTION_NAME = "participants"
+DATABASE_NAME = os.getenv("DATABASE_NAME", "devpost_data")
+COLLECTION_NAME = os.getenv("COLLECTION_NAME", "participants")
 
 # Gemini API configuration
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 
-# Devpost cookies for authentication
+# Devpost cookies for authentication (loaded from environment variables)
 DEVPOST_COOKIES = [
-    {'name': 'jwt', 'value': 'eyJhbGciOiJIUzI1NiJ9.eyJpZCI6OTUwNzE4N30.P-kx9z10_Xkd-80cKiO7YvUx2FPdll1ZTCAtOcxVQKQ'},
-    {'name': 'remember_user_token', 'value': 'W1s5NTA3MTg3XSwiaEV1c3RrcGFRb0JzQ1ozaVloenEiLCIxNzY3MjgyMzA5LjE5OTE5Il0%3D--08dcc06f0434b060ea3a36da99b969a0863a4381'},
-    {'name': '_devpost', 'value': 'SlJMaDE0WDFFWXdzRnB6YkNlbG82UXJaZUZ5UFhuK1V6NWxGRWo0WTZ6TVAvMXV4QmhGZW90dWh3R0VEaFpzTG5IT3hoWDh6MlZpa1pHeVE0Q0RIN1BvRkJTalBaVzZQemNtSjJkUDQxbzdtdWFldFVtMDZVUGU3b3NaeTFMTmcwQXV5RnBhYXJYSm9WUVRiRGMrRWJyNHUyM2tOYkxlQ1lieE80Vk1KL2Q0eGMyYVYxQWd3RitBTWJRalBqaVJpSEVwZGdIRFRPdytRSG9GbE5Ld1pRL3dZdzdHK0xFRlBwbHFsSmNKK3pvN1VsSmxNZ2dQSDZweGtwbktCR0hmbXpCcXRrb1g2cTkzRDBzSG52WFJ3eE1zdVFkakt3ME5PaVZiY3ZtcVpCTmZmcUZaNDZ6OS83UjZDckNTOGVWM29hbEJxbDVXSHEyY3ZCUktuQmtpSnlmTjBzK05pVXJ0YzRxNGx0ZmhIdldTVVpYS2hITVhqWWNOUWVYUUJWWndNckJKTFdvak5hL3ZJVXVYZnJTYzR1Y2gzODhYczV3SGgxNm53cHdyUDJkWVJ6d3BpOEpvcTkvWTh0QmdIdGRTT0MzOXIzKy83TEZoUTdvQmZ3MjZxTExVdFFNeEpveXRaVUFUcFdaNVQybGdNcGhhRmtRTlJBOVlIU3BLSUk4TmRXYWE5STl2a3VncUlLL1krMFIxZ0JSTjFiRXozZkZNY0pUeXBwRVNvakNWVHVWejhuMFdaNXEzRlVJRXg5WUFKRVJ4MUJ0djAya2YwZFFIaUgzaVdVeExITWV6RW15Q2RwK1lZK0FkOFlkTT0tLXNJNjlOTnkvcVd3SFpFV3BoNFk4NUE9PQ%3D%3D--dcfd7291b4da71cad63b01fdcd8f5844eb5a3686'},
-    {'name': 'aws-waf-token', 'value': '3b85b5f3-f100-4cd5-b9d2-1df93816b6c9:EQoAk+iTY7oCAAAA:6QpeMmOEcwcl3z2mL8OrFP/quJ+GrhUKWsX/joAxvC7eOjiOersSLpcas1nOGiFOr/xgxsiCRUirc+T++aJrjNgPEpxXjIo/31djntuIR+fP5ez1zhZdKc9XrF1RIShvo1/yVtqqXKDR42kqd8vobkp9jt9FdVWMcKtlYfqhoxgoBBthOko7AJP49Dx13nLqE4fu7j0nW2/jeuUfri5I1UB4SWkl+dLs0or4Cbx0fy/+tBI2mp7KG68BWIuSGavfxCI='},
-    {'name': '_ga', 'value': 'GA1.2.1951265362.1767282304'},
+    {'name': 'jwt', 'value': os.getenv('DEVPOST_JWT', '')},
+    {'name': 'remember_user_token', 'value': os.getenv('DEVPOST_REMEMBER_USER_TOKEN', '')},
+    {'name': '_devpost', 'value': os.getenv('DEVPOST_SESSION', '')},
+    {'name': 'aws-waf-token', 'value': os.getenv('DEVPOST_AWS_WAF_TOKEN', '')},
+    {'name': '_ga', 'value': os.getenv('DEVPOST_GA', '')},
 ]
 
 

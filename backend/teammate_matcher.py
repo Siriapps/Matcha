@@ -510,8 +510,15 @@ Return ONLY the JSON array, no markdown formatting, no explanatory text before o
 
 # Example usage
 if __name__ == "__main__":
-    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'your-api-key-here')
-    MONGODB_URI = "mongodb+srv://sainikhil1611_db_user:LrCOwJCDgBRI4mCh@hack-for-hacks.hg2vjaf.mongodb.net/?appName=Hack-for-Hacks"
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+    MONGODB_URI = os.getenv('MONGODB_URI', '')
+
+    if not GEMINI_API_KEY or not MONGODB_URI:
+        print("Error: Please set GEMINI_API_KEY and MONGODB_URI in .env file")
+        exit(1)
 
     matcher = TeammateMatcher(GEMINI_API_KEY, MONGODB_URI)
 
