@@ -2,7 +2,7 @@
 
 # Matcha - Brewing Your Perfect Hack Team
   
-[![Watch the demo](https://img.youtube.com/vi/sNpusFMyFoI/maxresdefault.jpg)](https://www.youtube.com/watch?v=sNpusFMyFoI)
+[![Watch the demo](https://img.youtube.com/vi/bx2dYwqAUJI/hqdefault.jpg)](https://youtu.be/bx2dYwqAUJI)
 </div>
 
 ## About Matcha
