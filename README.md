@@ -1,16 +1,9 @@
-# ☕ Matcha - Brewing Your Perfect Hack Team
-
 <div align="center">
+
+# Matcha - Brewing Your Perfect Hack Team
   
-[![Demo Video](https://img.shields.io/badge/▶️_Watch_Demo-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/bx2dYwqAUJI)
-
-**Don't let a great idea go to waste. Connect with developers, designers, and visionaries.**
-
-[Getting Started](#getting-started) • [Features](#features) • [Tech Stack](#tech-stack) • [Demo](#demo-video) • [Contributing](#contributing)
-
+[![Watch the demo](https://img.youtube.com/vi/sNpusFMyFoI/maxresdefault.jpg)](https://www.youtube.com/watch?v=sNpusFMyFoI)
 </div>
-
----
 
 ## About Matcha
 
