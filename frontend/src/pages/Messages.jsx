@@ -9,58 +9,23 @@ function Messages() {
   const { user } = useAuth()
   const [selectedChat, setSelectedChat] = useState(null)
   const [message, setMessage] = useState('')
-  const [conversations, setConversations] = useState([
-    {
-      id: 1,
-      name: 'Alice Dev',
-      avatar: 'bg-blue-500',
-      online: true,
-      lastMessage: 'Hey, do you know React?',
-      time: '2m',
-      unread: 0,
-    },
-    {
-      id: 2,
-      name: 'Bob Backend',
-      avatar: 'bg-green-500',
-      online: false,
-      lastMessage: 'I can set up the DB.',
-      time: '1h',
-      unread: 0,
-    },
-    {
-      id: 3,
-      name: 'Sarah Design',
-      avatar: 'bg-pink-500',
-      online: false,
-      lastMessage: 'The Figma file is ready.',
-      time: '1d',
-      unread: 0,
-    },
-    {
-      id: 4,
-      name: 'Team Python',
-      avatar: 'bg-purple-500',
-      online: false,
-      lastMessage: "Let's meet at 5.",
-      time: '2d',
-      unread: 0,
-    },
-  ])
+  const [conversations, setConversations] = useState([])
 
   const [messages, setMessages] = useState({})
 
   useEffect(() => {
     const userId = searchParams.get('user')
     const userName = searchParams.get('name')
-    
+    const preTypedMessage = searchParams.get('message')
+
     if (userId && userName) {
       // Find or create conversation
-      let chat = conversations.find(c => c.id === parseInt(userId))
+      const chatId = userId
+      let chat = conversations.find(c => c.id === chatId)
       if (!chat) {
         const decodedName = decodeURIComponent(userName)
         chat = {
-          id: parseInt(userId),
+          id: chatId,
           name: decodedName,
           avatar: 'bg-matcha-green',
           online: true,
@@ -71,7 +36,12 @@ function Messages() {
         setConversations([chat, ...conversations])
       }
       setSelectedChat(chat)
-      
+
+      // Set pre-typed message if provided
+      if (preTypedMessage) {
+        setMessage(decodeURIComponent(preTypedMessage))
+      }
+
       // Initialize messages if not exists
       if (!messages[chat.id]) {
         setMessages({
@@ -81,19 +51,7 @@ function Messages() {
               id: 1,
               type: 'system',
               text: `You matched with ${chat.name}! Start brewing ideas.`,
-              time: '10:30 AM',
-            },
-            {
-              id: 2,
-              sender: chat.name,
-              text: 'Hi! I saw your profile on the matching page.',
-              time: '10:42 AM',
-            },
-            {
-              id: 3,
-              sender: chat.name,
-              text: 'Are you still looking for a frontend dev for the hackathon? I have experience with React and Tailwind.',
-              time: '10:42 AM',
+              time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
             },
           ],
         })
@@ -115,12 +73,29 @@ function Messages() {
       time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
     }
 
+    const updatedMessages = [...(messages[selectedChat.id] || []), newMessage]
+
     setMessages({
       ...messages,
-      [selectedChat.id]: [...(messages[selectedChat.id] || []), newMessage],
+      [selectedChat.id]: updatedMessages,
     })
 
     setMessage('')
+
+    // Auto-response after 2 seconds
+    setTimeout(() => {
+      const autoResponse = {
+        id: Date.now() + 1,
+        sender: selectedChat.name,
+        text: "That sounds great! I'd love to collaborate. What ideas do you have in mind for the hackathon?",
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      }
+
+      setMessages(prevMessages => ({
+        ...prevMessages,
+        [selectedChat.id]: [...(prevMessages[selectedChat.id] || []), autoResponse],
+      }))
+    }, 2000)
   }
 
   const currentMessages = selectedChat ? (messages[selectedChat.id] || []) : []

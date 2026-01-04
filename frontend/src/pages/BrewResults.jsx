@@ -74,8 +74,10 @@ function BrewResults() {
     }
   }
 
-  const handleChat = (brewerId, brewerName) => {
-    navigate(`/messages?user=${brewerId}&name=${encodeURIComponent(brewerName)}`)
+  const handleRequest = (match) => {
+    // Navigate to messages with pre-typed message
+    const preTypedMessage = `Hi ${match.name}! I came across your profile and I think we'd make a great team for this hackathon. I'm particularly interested in ${match.skills?.[0] || 'collaborating'}. Would you like to team up?`
+    navigate(`/messages?user=${encodeURIComponent(match.profile_url || match.name)}&name=${encodeURIComponent(match.name)}&message=${encodeURIComponent(preTypedMessage)}`)
   }
 
   return (
@@ -193,23 +195,19 @@ function BrewResults() {
                         </div>
                         {/* Action Bar */}
                         <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-white/5 mt-2">
-                          <button className="flex-1 min-w-[120px] bg-primary hover:bg-[#0fd650] text-black font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-all transform active:scale-95">
+                          <button
+                            onClick={() => handleRequest(match)}
+                            className="flex-1 min-w-[120px] bg-primary hover:bg-[#0fd650] text-black font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-all transform active:scale-95"
+                          >
                             <span className="material-symbols-outlined text-[18px]">handshake</span>
                             Request
-                          </button>
-                          <button
-                            onClick={() => handleChat(match.profile_url || idx, match.name)}
-                            className="flex-1 min-w-[100px] bg-[#28392e] hover:bg-[#344a3b] text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors border border-transparent hover:border-white/10"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">chat</span>
-                            Chat
                           </button>
                           {match.profile_url && (
                             <a
                               href={match.profile_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-full sm:w-auto bg-transparent border border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors"
+                              className="flex-1 min-w-[100px] bg-transparent border border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors"
                               title="View Devpost Profile"
                             >
                               <span className="material-symbols-outlined text-[18px]">person</span>

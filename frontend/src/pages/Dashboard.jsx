@@ -31,37 +31,6 @@ function Dashboard() {
           <p className="text-text-secondary text-base lg:text-lg">Ready to brew some code today?</p>
         </section>
 
-        {/* Stats Grid */}
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="group flex flex-col justify-between rounded-xl border border-[#3b5443] bg-surface-dark p-6 transition-all hover:border-primary/50">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-[#28392e] text-primary group-hover:bg-primary group-hover:text-[#111813] transition-colors">
-              <span className="material-symbols-outlined">code</span>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-text-secondary">Total Hackathons</p>
-              <p className="mt-1 text-3xl font-bold text-white">12</p>
-            </div>
-          </div>
-          <div className="group flex flex-col justify-between rounded-xl border border-[#3b5443] bg-surface-dark p-6 transition-all hover:border-primary/50">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-[#28392e] text-primary group-hover:bg-primary group-hover:text-[#111813] transition-colors">
-              <span className="material-symbols-outlined">handshake</span>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-text-secondary">Teams Formed</p>
-              <p className="mt-1 text-3xl font-bold text-white">8</p>
-            </div>
-          </div>
-          <div className="group flex flex-col justify-between rounded-xl border border-[#3b5443] bg-surface-dark p-6 transition-all hover:border-primary/50">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-[#28392e] text-primary group-hover:bg-primary group-hover:text-[#111813] transition-colors">
-              <span className="material-symbols-outlined">mail</span>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-text-secondary">Pending Invites</p>
-              <p className="mt-1 text-3xl font-bold text-white">2</p>
-            </div>
-          </div>
-        </section>
-
         {/* Hero / Find Teammates */}
         <section className="relative overflow-hidden rounded-2xl bg-[#18261e] border border-[#28392e]">
           {/* Abstract Background Pattern */}

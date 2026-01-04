@@ -8,6 +8,7 @@ import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import ProfileSetupStep1 from './pages/ProfileSetupStep1'
 import ProfileSetupStep2 from './pages/ProfileSetupStep2'
+import Survey from './pages/Survey'
 import Dashboard from './pages/Dashboard'
 import BrewResults from './pages/BrewResults'
 import Brewing from './pages/Brewing'
@@ -37,6 +38,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProfileSetupStep2 />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/survey"
+            element={
+              <ProtectedRoute>
+                <Survey />
               </ProtectedRoute>
             }
           />

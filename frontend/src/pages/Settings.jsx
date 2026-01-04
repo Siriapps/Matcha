@@ -213,9 +213,9 @@ function Settings() {
               <label className="block text-sm font-medium text-white mb-3">Hackathon Experience</label>
               <div className="space-y-3">
                 {[
-                  { value: 'first-time', label: 'First Time', desc: "This is my first hackathon." },
-                  { value: 'regular', label: 'Regular', desc: "I've done 1-3 hackathons." },
-                  { value: 'veteran', label: 'Veteran', desc: "I'm a hackathon pro." },
+                  { value: 'beginner', label: 'Beginner', desc: "This is my first hackathon or I'm new to team projects" },
+                  { value: 'intermediate', label: 'Intermediate', desc: "I've participated in 1-3 hackathons before" },
+                  { value: 'advanced', label: 'Advanced', desc: "I'm a hackathon veteran with 4+ experiences" },
                 ].map((option) => (
                   <label
                     key={option.value}

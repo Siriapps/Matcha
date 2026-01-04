@@ -16,11 +16,13 @@ function Signup() {
     }
   }, [isAuthenticated, navigate])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     // Accept any email/password
-    login(email, password)
-    navigate('/dashboard', { replace: true })
+    const result = await login(email, password)
+
+    // New signups should always go to survey
+    navigate('/survey', { replace: true })
   }
 
   return (

@@ -19,10 +19,16 @@ function Login() {
     }
   }, [isAuthenticated, navigate, from])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    login(email, password)
-    navigate('/dashboard', { replace: true })
+    const result = await login(email, password)
+
+    // Check if user has completed survey
+    if (result.user && !result.user.surveyCompleted) {
+      navigate('/survey', { replace: true })
+    } else {
+      navigate('/dashboard', { replace: true })
+    }
   }
 
   return (
